@@ -1,4 +1,4 @@
-let recursion_depth = 2;
+let recursion_depth = 15;
 
 class Triangle {
   constructor(a, b, c) {
@@ -45,18 +45,18 @@ function getLongestSide(triangle) {
 
 function choosePoint(side) {
   let ratio = Math.random()
-  let vector = {
-    x: side[1].x - side[0].x,
-    y: side[1].y - side[0].y
-  }
+  let point = new Point2D(
+    side[1].x - side[0].x,
+    side[1].y - side[0].y
+  )
 
-  vector.x *= ratio;
-  vector.y *= ratio;
+  point.x *= ratio;
+  point.y *= ratio;
 
-  vector.x += side[0].x;
-  vector.y += side[0].y;
+  point.x += side[0].x;
+  point.y += side[0].y;
 
-  return vector;
+  return point;
 }
 
 function createTriangle(triangle) {
@@ -81,24 +81,22 @@ function draw() {
   // translate(width / 2, height / 2);
   background(220);
   strokeWeight(2);
+  noFill();
 
-  beginShape()
+  beginShape();
+  console.log("jaja")
   drawTriangle(triangles[0], 0)
   endShape(CLOSE)
 }
 
 function drawTriangle(triangle, recursion) {
-
+  console.log(recursion)
   if (recursion < recursion_depth) {
-    for (let i = 0; i < triangles.length; i++) {
-      let t = triangles[i]
-      for (let j = 0; j < t.vertices.length; j++) {
-        let v = t.vertices[j]
-        vertex(v.x, v.y);
-        drawTriangle(createTriangle(t), recursion + 1)
-      }
-    }
-    console.log(triangle)
-
+    let v = triangle.vertices
+    console.log(v)
+    line(v[0].x, v[0].y, v[1].x, v[1].y);
+    line(v[1].x, v[1].y, v[2].x, v[2].y);
+    line(v[2].x, v[2].y, v[0].x, v[0].y)
+    drawTriangle(createTriangle(triangle), recursion+1) 
   }
 }
