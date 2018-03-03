@@ -1,4 +1,4 @@
-let recursion_depth = 15;
+let recursion_depth = 13;
 
 class Triangle {
   constructor(a, b, c) {
@@ -15,10 +15,16 @@ class Point2D {
 }
 
 let triangles = [new Triangle(
-  new Point2D(100, 100),
-  new Point2D(100, 900),
-  new Point2D(900, 100)
+  new Point2D(50, 50),
+  new Point2D(50, 950),
+  new Point2D(950, 50)
 )]
+
+triangles.push(new Triangle(
+  new Point2D(50, 950),
+  new Point2D(950, 50),
+  new Point2D(950, 950)
+))
 
 function getSideDistance(sides) {
   let a = sides[0], b = sides[1];
@@ -43,8 +49,16 @@ function getLongestSide(triangle) {
   return longestSide;
 }
 
+function getRatio() {
+  let variance = 6; // change this and investigate the result
+  let r = randomGaussian() / variance + 0.5;
+  if (r > 1) return 1;
+  if (r < 0) return 0;
+  return r;
+}
+
 function choosePoint(side) {
-  let ratio = Math.random()
+  let ratio = getRatio()
   let point = new Point2D(
     side[1].x - side[0].x,
     side[1].y - side[0].y
@@ -59,16 +73,22 @@ function choosePoint(side) {
   return point;
 }
 
-function createTriangle(triangle) {
+function createTriangles(triangle, chosenVertex) {
   let longestSide = getLongestSide(triangle);
-  let keptVertex = longestSide.side[Math.round(Math.random())]
   let newVertex = choosePoint(longestSide.side);
-  let smallerTriangle = new Triangle(
-    longestSide.vertex,
-    keptVertex,
-    newVertex
-  )
-  return (smallerTriangle)
+  let newTriangles = [
+    new Triangle(
+      longestSide.vertex,
+      longestSide.side[0],
+      newVertex
+    ),
+    new Triangle(
+      longestSide.vertex,
+      longestSide.side[1],
+      newVertex
+    )
+  ]
+  return (newTriangles)
 }
 
 
@@ -80,23 +100,24 @@ function setup() {
 function draw() {
   // translate(width / 2, height / 2);
   background(220);
-  strokeWeight(2);
+  strokeWeight(.3);
   noFill();
 
-  beginShape();
-  console.log("jaja")
-  drawTriangle(triangles[0], 0)
-  endShape(CLOSE)
+  drawTriangle(triangles[0], 0, recursion_depth)
+  drawTriangle(triangles[1], 0, recursion_depth)
 }
 
-function drawTriangle(triangle, recursion) {
-  console.log(recursion)
-  if (recursion < recursion_depth) {
-    let v = triangle.vertices
-    console.log(v)
-    line(v[0].x, v[0].y, v[1].x, v[1].y);
-    line(v[1].x, v[1].y, v[2].x, v[2].y);
-    line(v[2].x, v[2].y, v[0].x, v[0].y)
-    drawTriangle(createTriangle(triangle), recursion+1) 
+function drawTriangle(triangle, recursion, max_recursion) {
+  if ((random() > .95) ||
+    (recursion > max_recursion)) {
+    return
   }
+
+  let v = triangle.vertices
+  line(v[0].x, v[0].y, v[1].x, v[1].y);
+  line(v[1].x, v[1].y, v[2].x, v[2].y);
+  line(v[2].x, v[2].y, v[0].x, v[0].y)
+  let triangles = createTriangles(triangle)
+  drawTriangle(triangles[0], recursion + 1, max_recursion)
+  drawTriangle(triangles[1], recursion + 1, max_recursion)
 }
