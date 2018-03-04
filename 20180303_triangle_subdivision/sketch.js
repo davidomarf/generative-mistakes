@@ -104,11 +104,10 @@ function setup() {
 
 function draw() {
   // translate(width / 2, height / 2);
-  background(5);
+  background(220);
   strokeWeight(.2);
   noFill();
 
-  stroke(220);
   drawTriangle(triangles[0], 0, recursion_depth)
   drawTriangle(triangles[1], 0, recursion_depth)
 }
