@@ -1,9 +1,14 @@
 let recursion_depth = 13;
+let w = 1920*2, h = 1080*2;
 
 class Triangle {
   constructor(a, b, c) {
     this.vertices = [a, b, c];
     this.sides = [[b, c], [a, c], [a, b]];
+    this.midPoint = new Point2D(
+      (a.x + b.x + c.y)/3,
+      (a.y + b.y + c.y)/3
+    )
   }
 }
 
@@ -16,14 +21,14 @@ class Point2D {
 
 let triangles = [new Triangle(
   new Point2D(50, 50),
-  new Point2D(50, 950),
-  new Point2D(950, 50)
+  new Point2D(50, h - 50),
+  new Point2D(w - 50, 50)
 )]
 
 triangles.push(new Triangle(
-  new Point2D(50, 950),
-  new Point2D(950, 50),
-  new Point2D(950, 950)
+  new Point2D(50, h - 50),
+  new Point2D(w - 50, 50),
+  new Point2D(w - 50, h - 50)
 ))
 
 function getSideDistance(sides) {
@@ -93,30 +98,36 @@ function createTriangles(triangle, chosenVertex) {
 
 
 function setup() {
-  createCanvas(1000, 1000);
+  createCanvas(w, h);
   noLoop();
 }
 
 function draw() {
   // translate(width / 2, height / 2);
-  background(220);
-  strokeWeight(.3);
+  background(5);
+  strokeWeight(.2);
   noFill();
 
+  stroke(220);
   drawTriangle(triangles[0], 0, recursion_depth)
   drawTriangle(triangles[1], 0, recursion_depth)
 }
 
 function drawTriangle(triangle, recursion, max_recursion) {
-  if ((random() > .95) ||
+  if ((random() > .99) ||
     (recursion > max_recursion)) {
     return
   }
 
   let v = triangle.vertices
-  line(v[0].x, v[0].y, v[1].x, v[1].y);
-  line(v[1].x, v[1].y, v[2].x, v[2].y);
-  line(v[2].x, v[2].y, v[0].x, v[0].y)
+  let mp = triangle.midPoint
+  bezier(v[0].x, v[0].y, mp.x, mp.y, mp.x, mp.y, v[1].x, v[1].y)
+  bezier(v[1].x, v[1].y, mp.x, mp.y, mp.x, mp.y, v[2].x, v[2].y)
+  bezier(v[2].x, v[2].y, mp.x, mp.y, mp.x, mp.y, v[0].x, v[0].y)
+  
+  // line(v[0].x, v[0].y, v[1].x, v[1].y);
+  // line(v[1].x, v[1].y, v[2].x, v[2].y);
+  // line(v[2].x, v[2].y, v[0].x, v[0].y);
   let triangles = createTriangles(triangle)
   drawTriangle(triangles[0], recursion + 1, max_recursion)
   drawTriangle(triangles[1], recursion + 1, max_recursion)
