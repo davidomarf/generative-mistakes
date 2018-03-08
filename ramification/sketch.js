@@ -37,7 +37,12 @@ function startFlow(circle, recursion) {
   }
   if (random() < branchingOdds) {
     let childAngle = getAngleOriginRadius(circle);
-    childAngle += 90;
+    if (random() > .5){
+      childAngle += 90;
+    } else {
+      childAngle -= 90;
+    }
+    
     newCircle = circle.createChild(childAngle)
     startFlow(newCircle, recursion);
   }
