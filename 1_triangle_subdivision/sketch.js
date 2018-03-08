@@ -1,13 +1,22 @@
-let recursion_depth =13;
-let w = 700, h = 700;
+let backgroundColor = [360, 0, 90, 1]
+let randomTriangles = false;
+let variance = 10;
+let fixedScale = .5;
+let recursion_depth = 17;
+let alpha = .2;
+let border = 0;
+let thickness = .2;
+let stopOdds = 00;
+
+let w = 1080, h = 1080;
 
 class Triangle {
   constructor(a, b, c) {
     this.vertices = [a, b, c];
     this.sides = [[b, c], [a, c], [a, b]];
     this.midPoint = new Point2D(
-      (a.x + b.x + c.y)/3,
-      (a.y + b.y + c.y)/3
+      (a.x + b.x + c.y) / 3,
+      (a.y + b.y + c.y) / 3
     )
   }
 }
@@ -17,18 +26,18 @@ class Point2D {
     this.x = x;
     this.y = y;
   }
-} 
+}
 
 let triangles = [new Triangle(
-  new Point2D(50, 50),
-  new Point2D(50, h - 50),
-  new Point2D(w - 50, 50)
+  new Point2D(border, border),
+  new Point2D(border, h - border),
+  new Point2D(w - border, border)
 )]
 
 triangles.push(new Triangle(
-  new Point2D(50, h - 50),
-  new Point2D(w - 50, 50),
-  new Point2D(w - 50, h - 50)
+  new Point2D(border, h - border),
+  new Point2D(w - border, border),
+  new Point2D(w - border, h - border)
 ))
 
 function getSideDistance(sides) {
@@ -55,11 +64,15 @@ function getLongestSide(triangle) {
 }
 
 function getRatio() {
-  let variance = 8; // change this and investigate the result
-  let r = randomGaussian() / variance + 0.5;
-  if (r > 1) return 1;
-  if (r < 0) return 0;
-  return r;
+  if (randomTriangles) {
+    let r = randomGaussian() / variance + 0.5;
+    if (r > 1) return 1;
+    if (r < 0) return 0;
+    return r;
+  }
+  else {
+    return fixedScale
+  }
 }
 
 function choosePoint(side) {
@@ -105,28 +118,35 @@ function setup() {
 function draw() {
   // translate(width / 2, height / 2);
   colorMode(HSB)
-  background(0);
-  strokeWeight(.2);
+  background(color(backgroundColor));
+  strokeWeight(thickness);
   noFill();
   drawTriangle(triangles[0], 0, recursion_depth)
   drawTriangle(triangles[1], 0, recursion_depth)
 }
 
 function drawTriangle(triangle, recursion, max_recursion) {
-  if ((random() > .93) ||
+  
+  if ((random() < stopOdds) ||
     (recursion > max_recursion)) {
     return
   }
 
+  
   let v = triangle.vertices
   let mp = triangle.midPoint
+  
+  stroke(0, 100, 0, alpha)
+  
   // bezier(v[0].x, v[0].y, mp.x, mp.y, mp.x, mp.y, v[1].x, v[1].y)
   // bezier(v[1].x, v[1].y, mp.x, mp.y, mp.x, mp.y, v[2].x, v[2].y)
   // bezier(v[2].x, v[2].y, mp.x, mp.y, mp.x, mp.y, v[0].x, v[0].y)
-  stroke(200)
   line(v[0].x, v[0].y, v[1].x, v[1].y);
+  // stroke(0, 100, 50, alpha)
   line(v[1].x, v[1].y, v[2].x, v[2].y);
+  // stroke(100, 100, 80, alpha)
   line(v[2].x, v[2].y, v[0].x, v[0].y);
+  // point(mp.x, mp.y)
   let triangles = createTriangles(triangle)
   drawTriangle(triangles[0], recursion + 1, max_recursion)
   drawTriangle(triangles[1], recursion + 1, max_recursion)
