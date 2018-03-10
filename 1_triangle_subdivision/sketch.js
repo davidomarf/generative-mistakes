@@ -15,7 +15,7 @@ class Triangle {
     this.vertices = [a, b, c];
     this.sides = [[b, c], [a, c], [a, b]];
     this.midPoint = new Point2D(
-      (a.x + b.x + c.y) / 3,
+      (a.x + b.x + c.x) / 3,
       (a.y + b.y + c.y) / 3
     )
   }

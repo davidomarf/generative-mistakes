@@ -1,7 +1,7 @@
 let backgroundColor = [360, 80, 10, 1]
 let recursionDepth = 30;
-let radiusVariance = .1;
-let branchingOdds = 0.1;
+let radiusVariance = .15;
+let branchingOdds = 0;
 // Range in degrees to choose the next step direction
 let nextStepRange = 90;
 
@@ -50,7 +50,6 @@ function startFlow(circle, recursion) {
   let childAngle = getAngleOriginRadius(circle);
   childAngle += random() * nextStepRange - nextStepRange / 2;
   childCircle = circle.createChild(childAngle);
-  ellipse(circle.center.x, circle.center.y, circle.radius, circle.radius);
   // drawContinously(circle, childCircle, childAngle);
   startFlow(circle.createChild(childAngle), recursion + 1);
 }
