@@ -160,21 +160,24 @@ def draw_triangle(dwg, triangle, recursion):
     dwg.add(
         dwg.line(
             (v[0][0], v[0][1]),
-            (v[1][0], v[1][1])
+            (v[1][0], v[1][1]),
+            stroke=svgwrite.rgb(10, 10, 16, '%')
         )
     )
 
     dwg.add(
         dwg.line(
             (v[1][0], v[1][1]),
-            (v[2][0], v[2][1])
+            (v[2][0], v[2][1]),
+            stroke=svgwrite.rgb(10, 10, 16, '%')
         )
     )
 
     dwg.add(
         dwg.line(
             (v[2][0], v[2][1]),
-            (v[0][0], v[0][1])
+            (v[0][0], v[0][1]),
+            stroke=svgwrite.rgb(10, 10, 16, '%')
         )
     )
 
