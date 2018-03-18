@@ -1,7 +1,7 @@
 #### Importing packages ####
 import math
 import random
-
+import pprint
 import svgwrite
 
 #### Constants #######################################
@@ -9,9 +9,8 @@ import svgwrite
 # without going deeper in the code
 
 ### Drawing Area ###
-WIDTH = 1000
-HEIGHT = 1000
-BORDER = 20
+WIDTH = 500
+HEIGHT = 500
 
 ### Drawing Variables ###
 # Color space is HSLA: Hue, Saturation, Lightness, Alpha
@@ -28,9 +27,9 @@ VARIANCE = 10
 FIXED_SCALE = .5
 
 ## Recursion ##
-MIN_RECURSION_DEPTH = 1
-MAX_RECURSION_DEPTH = 5
-STOPPING_ODDS = .10
+MIN_RECURSION_DEPTH = 5
+MAX_RECURSION_DEPTH = 15
+STOPPING_ODDS = .15
 
 
 #### Classes #########################################
@@ -57,9 +56,9 @@ class Triangle(object):
         if Vector._dist(*self.sides[1]) > longest_side_length:
             longest_side = self.sides[1]
             opposite_vertex = self.vertices[1]
-        elif Vector._dist(*self.sides[2]) > longest_side_length:
+        if Vector._dist(*self.sides[2]) > longest_side_length:
             longest_side = self.sides[2]
-            opposite_vertex = self.vertices[1]
+            opposite_vertex = self.vertices[2]
 
         return longest_side, opposite_vertex
 
@@ -115,7 +114,7 @@ class Vector(object):
 
 def get_ratio():
     if RANDOM_SCALE:
-        r = random.normalvariate(0, VARIANCE) / VARIANCE + 0.5
+        r = random.normalvariate(0, 1) / VARIANCE + 0.5
         if r > 1:
             return 1
         if r < 0:
@@ -128,7 +127,7 @@ def get_ratio():
 def choosePoint(side):
     ratio = get_ratio()
     point = Vector._substract(side[0], side[1]).multiply(ratio)
-    return Vector._sum([point, side[0]])
+    return Vector._sum([point, side[1]])
 
 
 def create_triangle(triangle):
@@ -165,22 +164,6 @@ def draw_triangle(dwg, triangle, recursion):
         )
     )
 
-    dwg.add(
-        dwg.line(
-            (v[1][0], v[1][1]),
-            (v[2][0], v[2][1]),
-            stroke=svgwrite.rgb(10, 10, 16, '%')
-        )
-    )
-
-    dwg.add(
-        dwg.line(
-            (v[2][0], v[2][1]),
-            (v[0][0], v[0][1]),
-            stroke=svgwrite.rgb(10, 10, 16, '%')
-        )
-    )
-
     triangles = create_triangle(triangle)
     draw_triangle(dwg, triangles[0], recursion + 1)
     draw_triangle(dwg, triangles[1], recursion + 1)
@@ -193,11 +176,16 @@ dwg = svgwrite.Drawing(filename="triangulation.svg")
 
 #### Drawing #########################################
 
-first_triangle = Triangle(  Vector([0,0]),
-                            Vector([400, 400]),
-                            Vector([400, 0])
+first_triangle = Triangle(  Vector([WIDTH ,0]),
+                            Vector([0, HEIGHT]),
+                            Vector([WIDTH, HEIGHT])
+                            )
+second_triangle = Triangle(  Vector([0, 0]),
+                            Vector([0, HEIGHT]),
+                            Vector([WIDTH, 0])
                             )
 
 draw_triangle(dwg, first_triangle, 0)
+draw_triangle(dwg, second_triangle, 0)
 
 dwg.save()
