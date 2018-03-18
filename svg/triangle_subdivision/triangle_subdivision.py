@@ -1,7 +1,7 @@
 #### Importing packages ####
 import math
 import random
-import pprint
+
 import svgwrite
 
 #### Constants #######################################
@@ -13,12 +13,16 @@ WIDTH = 500
 HEIGHT = 500
 
 ### Drawing Variables ###
-# Color space is HSLA: Hue, Saturation, Lightness, Alpha
-# Min value: [0, 0, 0, 0], Max Value: [360, 100, 100, 1]
-BACKGROUND_COLOR = [360, 0, 90, 1]
-FILL_COLOR = [0, 0, 0, 0]
-BORDER_COLOR = [0, 0, 0, 1]
-BORDER_THICKNESS = .2
+# Color space is RGB
+BACKGROUND_COLOR = "rgb(100, 100, 100)"
+BACKGROUND_OPACITY = 0.5
+
+FILL_COLOR = "rgb(0, 0, 0)"
+FILL_OPACITY = 0.7
+
+STROKE_COLOR = "rgb(50, 70, 0)"
+STROKE_OPACITY = 0.8
+STROKE_THICKNESS = .1
 
 ### Randomization parameters ###
 ## Selection of point for new triangle ##
@@ -27,9 +31,9 @@ VARIANCE = 10
 FIXED_SCALE = .5
 
 ## Recursion ##
-MIN_RECURSION_DEPTH = 5
-MAX_RECURSION_DEPTH = 15
-STOPPING_ODDS = .15
+MIN_RECURSION_DEPTH = 0
+MAX_RECURSION_DEPTH = 13
+STOPPING_ODDS = .1
 
 
 #### Classes #########################################
@@ -112,6 +116,7 @@ class Vector(object):
 
 #### Helper Functions ################################
 
+
 def get_ratio():
     if RANDOM_SCALE:
         r = random.normalvariate(0, 1) / VARIANCE + 0.5
@@ -147,20 +152,29 @@ def create_triangle(triangle):
     ]
     return new_triangles
 
+
+def create_starting_triangles():
+    return [Triangle(Vector([WIDTH, 0]), Vector([0, HEIGHT]), Vector([WIDTH, HEIGHT])),
+            Triangle(Vector([0, 0]), Vector([0, HEIGHT]), Vector([WIDTH, 0]))]
+
 #### Main drawing function ####
+
+
 def draw_triangle(dwg, triangle, recursion):
     if (recursion > MIN_RECURSION_DEPTH and
         (random.random() < STOPPING_ODDS or
-        recursion > MAX_RECURSION_DEPTH)):
-            return
-  
+         recursion > MAX_RECURSION_DEPTH)):
+        return
+
     v = [e.coordinates for e in triangle.vertices]
 
     dwg.add(
         dwg.line(
             (v[0][0], v[0][1]),
             (v[1][0], v[1][1]),
-            stroke=svgwrite.rgb(10, 10, 16, '%')
+            stroke = STROKE_COLOR,
+            stroke_width = STROKE_THICKNESS,
+            stroke_opacity = STROKE_OPACITY
         )
     )
 
@@ -172,20 +186,15 @@ def draw_triangle(dwg, triangle, recursion):
 #### Setup ###########################################
 
 # Write and save SVG file
-dwg = svgwrite.Drawing(filename="triangulation.svg")
+dwg = svgwrite.Drawing(filename="triangle_subdivision.svg")
+dwg.add(dwg.rect(insert=(0, 0), size=(WIDTH, HEIGHT), rx=None, ry=None,
+                 fill=BACKGROUND_COLOR, fill_opacity=BACKGROUND_OPACITY))
 
 #### Drawing #########################################
 
-first_triangle = Triangle(  Vector([WIDTH ,0]),
-                            Vector([0, HEIGHT]),
-                            Vector([WIDTH, HEIGHT])
-                            )
-second_triangle = Triangle(  Vector([0, 0]),
-                            Vector([0, HEIGHT]),
-                            Vector([WIDTH, 0])
-                            )
+main_triangles = create_starting_triangles()
 
-draw_triangle(dwg, first_triangle, 0)
-draw_triangle(dwg, second_triangle, 0)
+draw_triangle(dwg, main_triangles[0], 0)
+draw_triangle(dwg, main_triangles[1], 0)
 
 dwg.save()
