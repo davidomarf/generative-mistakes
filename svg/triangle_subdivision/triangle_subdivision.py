@@ -12,6 +12,17 @@ import svgwrite
 WIDTH = 500
 HEIGHT = 500
 
+### Randomization parameters ###
+## Selection of point for new triangle ##
+RANDOM_SCALE = True
+VARIANCE = 10
+FIXED_SCALE = .5
+
+## Recursion ##
+MIN_RECURSION_DEPTH = 0
+MAX_RECURSION_DEPTH = 15
+STOPPING_ODDS = .01
+
 ### Drawing Variables ###
 # Color space is RGB
 BACKGROUND_COLOR = "rgb(255, 255, 255)"
@@ -22,19 +33,7 @@ FILL_OPACITY = 0.7
 
 STROKE_COLOR = "rgb(0, 0, 0)"
 STROKE_OPACITY = 1
-STROKE_THICKNESS = .1
-
-### Randomization parameters ###
-## Selection of point for new triangle ##
-RANDOM_SCALE = True
-VARIANCE = 10
-FIXED_SCALE = .5
-
-## Recursion ##
-MIN_RECURSION_DEPTH = 0
-MAX_RECURSION_DEPTH = 15
-STOPPING_ODDS = .1
-
+STROKE_THICKNESS = .5
 
 #### Classes #########################################
 
@@ -54,6 +53,13 @@ class Triangle(object):
         self.center = Vector._midpoint(self.vertices)
 
     def get_longest_side(self):
+        """
+            Calculates the distance of every side.
+
+            Returns:
+                longest_side :: [ [] Vector ] List
+                opposite_vertex :: [] Vector
+        """
         longest_side = self.sides[0]
         opposite_vertex = self.vertices[0]
         longest_side_length = Vector._dist(*self.sides[0])
@@ -187,8 +193,8 @@ def draw_triangle(dwg, triangle, recursion):
 
 # Write and save SVG file
 dwg = svgwrite.Drawing(filename="triangle_subdivision.svg")
-dwg.add(dwg.rect(insert=(0, 0), size=(WIDTH, HEIGHT), rx=None, ry=None,
-                 fill=BACKGROUND_COLOR, fill_opacity=BACKGROUND_OPACITY))
+# dwg.add(dwg.rect(insert=(0, 0), size=(WIDTH, HEIGHT), rx=None, ry=None,
+#                  fill=BACKGROUND_COLOR, fill_opacity=BACKGROUND_OPACITY))
 
 #### Drawing #########################################
 
