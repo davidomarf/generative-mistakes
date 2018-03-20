@@ -20,7 +20,7 @@ FIXED_SCALE = .5
 
 ## Recursion ##
 MIN_RECURSION_DEPTH = 0
-MAX_RECURSION_DEPTH = 15
+MAX_RECURSION_DEPTH = 8
 STOPPING_ODDS = .01
 
 ### Drawing Variables ###
@@ -33,7 +33,7 @@ FILL_OPACITY = 0.7
 
 STROKE_COLOR = "rgb(0, 0, 0)"
 STROKE_OPACITY = 1
-STROKE_THICKNESS = .5
+STROKE_THICKNESS = .3
 
 #### Classes #########################################
 
@@ -88,7 +88,7 @@ class Vector(object):
 
     @staticmethod
     def _midpoint(vectors):
-        return Vector._sum(vectors)
+        return Vector._sum(vectors).multiply(1/len(vectors))
 
     @staticmethod
     def _sum(vectors):
