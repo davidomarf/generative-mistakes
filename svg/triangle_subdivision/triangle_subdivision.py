@@ -9,19 +9,19 @@ import svgwrite
 # without going deeper in the code
 
 ### Drawing Area ###
-WIDTH = 500
-HEIGHT = 500
+WIDTH = 650
+HEIGHT = 650
 
 ### Randomization parameters ###
 ## Selection of point for new triangle ##
 RANDOM_SCALE = True
-VARIANCE = 10
-FIXED_SCALE = .5
+VARIANCE = 8
+FIXED_SCALE = .618
 
 ## Recursion ##
 MIN_RECURSION_DEPTH = 0
-MAX_RECURSION_DEPTH = 8
-STOPPING_ODDS = .01
+MAX_RECURSION_DEPTH = 12
+STOPPING_ODDS = 0.05
 
 ### Drawing Variables ###
 # Color space is RGB
@@ -29,13 +29,14 @@ BACKGROUND_COLOR = "rgb(255, 255, 255)"
 BACKGROUND_OPACITY = 0
 
 FILL_COLOR = "rgb(0, 0, 0)"
-FILL_OPACITY = 0.7
+FILL_OPACITY = 0
 
-STROKE_COLOR = "rgb(0, 0, 0)"
+STROKE_COLOR = "rgb(73, 78, 82)"
 STROKE_OPACITY = 1
-STROKE_THICKNESS = .3
+STROKE_THICKNESS = .2
 
 #### Classes #########################################
+
 
 class Triangle(object):
     """
@@ -172,35 +173,55 @@ def draw_triangle(dwg, triangle, recursion):
          recursion > MAX_RECURSION_DEPTH)):
         return
 
-    v = [e.coordinates for e in triangle.vertices]
+    # v = [e.coordinates for e in triangle.vertices]
 
-    dwg.add(
-        dwg.line(
-            (v[0][0], v[0][1]),
-            (v[1][0], v[1][1]),
-            stroke = STROKE_COLOR,
-            stroke_width = STROKE_THICKNESS,
-            stroke_opacity = STROKE_OPACITY
-        )
-    )
+    # dwg.add(
+    #     dwg.line(
+    #         (v[0][0], v[0][1]),
+    #         (v[1][0], v[1][1]),
+    #         stroke=STROKE_COLOR,
+    #         stroke_width=STROKE_THICKNESS,
+    #         stroke_opacity=STROKE_OPACITY
+    #     )
+    # )
+    experiment(dwg, triangle, recursion)
 
     triangles = create_triangle(triangle)
     draw_triangle(dwg, triangles[0], recursion + 1)
     draw_triangle(dwg, triangles[1], recursion + 1)
 
+#### Experiment ######################################
+
+def experiment(dwg, triangle, recursion):
+    d = [e.coordinates for e in triangle.vertices]
+    d = (   "M " + str(d[0][0]) + " " + str(d[0][1]) +
+            " L " + str(d[1][0]) + " " + str(d[1][1]) +
+            " L " + str(d[2][0]) + " " + str(d[2][1]) + " z")
+    w = dwg.path(d=d,
+                 fill = FILL_COLOR,
+                 fill_opacity= FILL_OPACITY,
+                 stroke=STROKE_COLOR,
+                 stroke_opacity = STROKE_OPACITY,
+                 stroke_width = STROKE_THICKNESS
+                 )
+    dwg.add(w)
 
 #### Setup ###########################################
 
+
 # Write and save SVG file
-dwg = svgwrite.Drawing(filename="triangle_subdivision.svg")
+dwg=svgwrite.Drawing(filename="triangle_subdivision.svg")
 # dwg.add(dwg.rect(insert=(0, 0), size=(WIDTH, HEIGHT), rx=None, ry=None,
 #                  fill=BACKGROUND_COLOR, fill_opacity=BACKGROUND_OPACITY))
 
 #### Drawing #########################################
 
-main_triangles = create_starting_triangles()
+main_triangles=create_starting_triangles()
 
 draw_triangle(dwg, main_triangles[0], 0)
 draw_triangle(dwg, main_triangles[1], 0)
+
+# experiment(dwg, main_triangles[0])
+# experiment(dwg, main_triangles[1])
 
 dwg.save()
