@@ -47,9 +47,9 @@ let [grid, centers] = createGrid(svgSpace)
 for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
         if (Math.random() > .995) {
-            // grid[i][j].style("fill-opacity", Math.random());
-            svgSpace.append("circle")
-                .attr
+            grid[i][j].style("fill-opacity", Math.random());
+            // svgSpace.append("circle")
+            //     .attr
             console.log(grid[i][j].points)
         }
     }
