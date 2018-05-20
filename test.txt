@@ -1,3 +1,0 @@
-Hola. Prueba de commit usando SSH Key.
-
-Debería estar firmado con clave GPG.
