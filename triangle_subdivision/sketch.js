@@ -1,8 +1,8 @@
 let backgroundColor = [360, 0, 90, 1]
-let randomTriangles = false;
+let randomTriangles = true;
 let variance = 10;
 let fixedScale = .5;
-let recursion_depth = 17;
+let recursion_depth = 10;
 let alpha = .2;
 let border = 0;
 let thickness = .2;

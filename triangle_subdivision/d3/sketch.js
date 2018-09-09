@@ -13,8 +13,8 @@ const VARIANCE = 8
 const FIXED_SCALE = .618
 
 // Recursion //
-const MIN_RECURSION_DEPTH = 0
-const MAX_RECURSION_DEPTH = 8
+const MIN_RECURSION_DEPTH = 5
+const MAX_RECURSION_DEPTH = 13
 const STOPPING_ODDS = .1
 
 /// Drawing Variables ///
