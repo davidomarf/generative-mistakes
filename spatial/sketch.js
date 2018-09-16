@@ -1,121 +1,279 @@
-//// Constants ///////////////////////////////////////
-// Modifying these, will modify the whole work
-// without going deeper in the code
+////  C O N S T A N T S  ////////////////////////////////////
+const WIDTH = 1400;
+const HEIGHT = 750;
 
-/// Drawing Area ///
-const equatorialCircumference = 40000;
-const WIDTH = equatorialCircumference / 50;
-const HEIGHT = equatorialCircumference / 50;
+/// Randomness ///
+const VARIANCE = 5;
+const ANGLE_VARIANCE = 1;
 
-const continents_n = 5;
-const points_n = 16;
+/// River Drawing ///
+const RIVER_DIST_STEP = 150;
 
+/// City birth constants ///
+const POLYGON_SIDES = 6;
+const POLYGON_RADIUS = 30;
 
+/// Resources constants ///
+const RESOURCE_CLUSTERS = 5;
+const RESOURCE_CLUSTER_RADIUS = 15;
+const RESOURCE_CLUSTER_VARIANCE = 3;
+
+////// H E L P I N G   F U N C T I O N S /////////////////
+
+/**
+ * Returns the degrees equivalent of an angle in radians
+ * @param {number} angle  Angle in radians
+ */
+function toDegrees(angle) {
+  return angle * (180 / Math.PI);
+}
+
+/**
+ * Returns the radians equivalent of an angle in degrees
+ * @param {number} angle  Angle in degrees
+ */
 function toRadians(angle) {
-    return angle * (Math.PI / 180);
+  return angle * (Math.PI / 180);
 }
 
-function generateContinents(n) {
-    let continents = [];
-    for (let i = 0; i < n; i++) {
-        continents.push({
-            center: {
-                x: Math.random() * WIDTH,
-                y: (.3 * HEIGHT) + Math.random() * HEIGHT * 0.4
-            },
-            radius: (WIDTH / 15) + Math.random() * (WIDTH / 10)
-        });
-    }
-    let continents_polygons = [];
-    for (let i = 0; i < n; i++) {
-        let polygon = [];
-        let c = continents[i];
-        let angleDelta = 360 / points_n;
-        for (let j = 0; j <= 360; j += angleDelta) {
-            let scale = .5 + Math.random();
-            polygon.push(
-                [c.center.x + c.radius  * scale * Math.cos(toRadians(j)),
-                    c.center.y + c.radius * scale * Math.sin(toRadians(j))
-                ]
-            )
-        }
-        continents_polygons.push(
-            polygon
-        );
-    }
 
-    // let distorted = [];
-    // for (let i = 0; i < continents_polygons.length; i++) {
-    //     for (j = 0; j < continents_polygons[i].length; j++) {
-
-    //     }
-    // }
-    return continents_polygons;
+/**
+ * Calculates the angle between two points
+ * @param {array} a   Start point [x, y]
+ * @param {array} b   End point [x, y]
+ * 
+ * @return {Number}   Angle between a and b
+ */
+function getAngle(a, b) {
+  return Math.atan2(b[1] - a[1], b[0] - a[0]);
 }
 
-function drawContinents(svgSpace, continents) {
-    for (let i = 0; i < continents.length; i++) {
-        svgSpace.append("polygon")
-            .attr("points", continents[i])
-            .style("fill-opacity", 1);
-    }
+/**
+ * Gets a ratio [0, 1] from a normal distribution with custom variance
+ * @param {array} a   Start point [x, y]
+ * @param {array} b   End point [x, y]
+ * 
+ * @return {Number}   Angle between a and b
+ */
+function getRatio(variance) {
+  r = d3.randomNormal()() / variance + 0.5
+  if (r > 1) {
+    return 1
+  }
+  if (r < 0) {
+    return 0
+  }
+  return r
 }
 
-const svgSpace = d3.select("body")
+/**
+ * Displace a point towards a custom angle with custom distance
+ * 
+ * @param {array} origin  Origin for the displacement
+ * @param {number} angle  Angle of the displacement
+ * @param {number} dist   Distance of the displacement
+ */
+function sumDisplacement(origin, angle, dist) {
+  let endPoint = [
+    origin[0] + dist * Math.cos(angle),
+    origin[1] + dist * Math.sin(angle)
+  ];
+
+  return endPoint;
+}
+
+/////// A C T U A L   A L G O R I T H M S ////////////////
+
+
+/**
+ * Creates a polygon with custom center, number of sides, and radius
+ * 
+ * @param {number} sides    Number of polygon sides
+ * @param {number} radius   Distance between center and vertices
+ * @param {array} center    Coordinates of center [x, y]
+ */
+function createPolygon(sides, radius, center) {
+  let polygon = [];
+  let angleStep = 360 / sides;
+  for (let i = 0, angle = 0; i < sides; i++ , angle += angleStep) {
+    polygon.push(
+      [
+        center[0] + radius * Math.cos(toRadians(angle)),
+        center[1] + radius * Math.sin(toRadians(angle))
+      ]
+    )
+  }
+  return polygon;
+}
+
+/**
+ * Draws a city 
+ * 
+ * @param {*} city 
+ * @param {*} svgSpace 
+ */
+function drawCity(city, svgSpace) {
+  // Line function to convert array of points into SVG Path notation
+  let lineFunction = d3.line()
+    .x(function (d) { return d[0]; })
+    .y(function (d) { return d[1]; })
+    .curve(d3.curveBasisClosed);
+
+  // Draw river as a path  
+  svgSpace.append("path")
+    .attr("d", lineFunction(city))
+    .attr("stroke", "black")
+    .attr("stroke-width", 2)
+    .attr("fill", "none");
+}
+
+/**
+ * Draws a river
+ * 
+ * @param {array} river   Points of entire river path [[x, y], ...]
+ * @param {svg} svgSpace  Canvas where the river will be drawn
+ */
+function drawRiver(river, svgSpace) {
+
+  // Line function to convert array of points into SVG Path notation
+  let lineFunction = d3.line()
+    .x(function (d) { return d[0]; })
+    .y(function (d) { return d[1]; })
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  // Draw river as a path  
+  svgSpace.append("path")
+    .attr("d", lineFunction(river))
+    .attr("stroke", "blue")
+    .attr("stroke-width", 2)
+    .attr("fill", "none");
+}
+
+/**
+ * Calculates the Euclidean distance between two points
+ * 
+ * @param {array} a   Coordinates [x, y] of first point
+ * @param {array} b   Coordinates [x, y] of second point
+ * 
+ * @return {number}   Euclidan distance between a and b 
+ */
+function distanceBetweenPoints(a, b) {
+  return Math.sqrt((b[0] - a[0]) * (b[0] - a[0]) + (b[1] - a[1]) * (b[1] - a[1]))
+}
+
+/**
+ * Creates a river that goes (roughly) from start to end
+ * 
+ * @param {array} start   Coordinates [x, y] of first river point
+ * @param {array} end     Coordinates [x, y] of last river point
+ * 
+ * @return {array}  Points of entire river path [[x, y], ...]
+ */
+function createRiver(start, end) {
+  // river contains all the points from start to end.
+  // We initialize it with only start point
+  let river = [start]
+
+  // head is the last point added to the river: the head
+  let head = start.slice()
+
+  while (true) {
+    // angleHeadEnd is the angle of the line segment beween head and end
+    let angleHeadEnd = getAngle(head, end);
+
+    // The new river point created is head with some displacement towards the
+    // end of the river. The displacement uses a sligthly perturbed `angleHeadEnd`
+    // and a sligthly perturbed distance RIVER_DIST_STEP
+    let newRiverPoint = sumDisplacement(head,
+      (getRatio(ANGLE_VARIANCE) + .5) * angleHeadEnd,
+      getRatio(VARIANCE) * RIVER_DIST_STEP);
+
+    // Add the last generated point to the river and use it as the new head
+    river.push(newRiverPoint);
+    head = newRiverPoint.slice();
+
+    // Check if head is close enough to end point
+    if (distanceBetweenPoints(head, end) < RIVER_DIST_STEP) {
+      break;
+    }
+  }
+
+  // Push end as last point
+  river.push(end);
+
+  return river;
+}
+
+/**
+ * Grows the city outwards from the center
+ * 
+ * @param {array} city    Contains the vertex of the city
+ * @param {array} center  Contains the original center of the city
+ */
+function extendCityTerritory(city, center) {
+  extendedCity = city.slice();
+  for (let i = 0; i < city.length; i++) {
+    let angleCenterVertex = getAngle(center, city[i]);
+    let distance = distanceBetweenPoints(city[i], city[(i + 1) % city.length])
+    let newPoint = sumDisplacement(city[i],
+      (getRatio(ANGLE_VARIANCE * 3) + 0.5) * angleCenterVertex,
+      (getRatio(VARIANCE) * distance / 2))
+    extendedCity[i] = newPoint;
+  }
+  return extendedCity;
+}
+
+/**
+ * Create random clusters of resources along one area
+ * 
+ * @param {array} area  Contains maximum values for x and y
+ */
+function generateResources(area) {
+  let resourceClusters = [];
+  for (let i = 0; i < RESOURCE_CLUSTERS; i++) {
+    resourceClusters.push(
+      [Math.random() * area[0],
+      Math.random() * area[1]]
+    );
+  }
+  return resourceClusters;
+}
+
+function drawResources(resources, svgSpace) {
+  for (let i = 0; i < resources.length; i++) {
+    let cluster = createPolygon(5,
+      getRatio(RESOURCE_CLUSTER_VARIANCE) * RESOURCE_CLUSTER_RADIUS,
+      resources[i]);
+    drawCity(cluster, svgSpace);
+  }
+}
+
+function main() {
+
+  // Create a svgSpace using D3 with custom dimensions
+  const svgSpace = d3.select("body")
     .append("svg")
     .attr("width", WIDTH)
     .attr("height", HEIGHT);
 
-continents = generateContinents(continents_n);
-drawContinents(svgSpace, continents);
+  // Create a background (useful for certain debugging purposes)
+  svgSpace.append("rect")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .attr("fill", "white");
 
+  let river = createRiver([100, 0], [WIDTH, HEIGHT - 100]);
+  drawRiver(river, svgSpace);
 
-// for (let i = 0; i < continents.length; i++) {
-//     svgSpace.append("circle")
-//         .attr("cx", continents[i][0])
-//         .attr("cy", continents[i][1])
-//         .attr("r", 10);
-// }
-// /// Grid ///
-// const tileSize = 10
+  let resources = generateResources([WIDTH, HEIGHT]);
+  drawResources(resources, svgSpace);
 
-// function createGrid(svgSpace) {
-//     let grid = []
-//     let centers = []
-//     for (let i = tileSize, a = 0; i <= WIDTH; i += tileSize, a++) {
-//         grid.push([])
-//         centers.push([])
-//         for (let j = tileSize; j <= HEIGHT; j += tileSize) {
-//             let points = [
-//                 [i - tileSize, j - tileSize],
-//                 [i, j - tileSize],
-//                 [i, j],
-//                 [i - tileSize, j]
-//             ].join(" ")
+  let cityOrigin = river[Math.floor(Math.random() * river.length)]
+  let city = createPolygon(POLYGON_SIDES, POLYGON_RADIUS, cityOrigin);
+  for (let i = 0; i < 7; i++) {
+    drawCity(city, svgSpace);
+    city = extendCityTerritory(city, cityOrigin)
+  }
+}
 
-//             grid[a].push(svgSpace.append("polygon")
-//                 .attr("points", points)
-//                 .style("fill-opacity", 0)
-//                 .style("stroke", "black")
-//                 .style("stroke-opacity", .1))
-
-//             centers[a].push([i - tileSize / 2, j - tileSize / 2])
-//         }
-//     }
-//     return [grid, centers]
-// }
-
-
-
-// let [grid, centers] = createGrid(svgSpace)
-
-// for (let i = 0; i < grid.length; i++) {
-//     for (let j = 0; j < grid[i].length; j++) {
-//         if (Math.random() > .995) {
-//             grid[i][j].style("fill-opacity", Math.random());
-//             // svgSpace.append("circle")
-//             //     .attr
-//             console.log(grid[i][j].points)
-//         }
-//     }
-// }
+main()
