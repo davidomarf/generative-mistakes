@@ -11,7 +11,7 @@ const RIVER_DIST_STEP = 150;
 
 /// City birth constants ///
 const POLYGON_SIDES = 6;
-const POLYGON_RADIUS = 30;
+const POLYGON_RADIUS = 15;
 
 /// Resources constants ///
 const RESOURCE_CLUSTERS = 5;
@@ -45,7 +45,7 @@ function toRadians(angle) {
  * @return {Number}   Angle between a and b
  */
 function getAngle(a, b) {
-  return Math.atan2(b[1] - a[1], b[0] - a[0]);
+  return Math.atan2(b.y - a.y, b.x - a.x);
 }
 
 /**
@@ -69,15 +69,15 @@ function getRatio(variance) {
 /**
  * Displace a point towards a custom angle with custom distance
  * 
- * @param {array} origin  Origin for the displacement
+ * @param {object} origin Origin {x, y} for the displacement
  * @param {number} angle  Angle of the displacement
  * @param {number} dist   Distance of the displacement
  */
 function sumDisplacement(origin, angle, dist) {
-  let endPoint = [
-    origin[0] + dist * Math.cos(angle),
-    origin[1] + dist * Math.sin(angle)
-  ];
+  let endPoint = {
+    x: origin.x + dist * Math.cos(angle),
+    y: origin.y + dist * Math.sin(angle)
+  };
 
   return endPoint;
 }
@@ -96,12 +96,12 @@ function createPolygon(sides, radius, center) {
   let polygon = [];
   let angleStep = 360 / sides;
   for (let i = 0, angle = 0; i < sides; i++ , angle += angleStep) {
-    polygon.push(
-      [
-        center[0] + radius * Math.cos(toRadians(angle)),
-        center[1] + radius * Math.sin(toRadians(angle))
-      ]
+    let vertex = new CityVertex(
+      center.x + radius * Math.cos(toRadians(angle)),
+      center.y + radius * Math.sin(toRadians(angle)),
+      center
     )
+    polygon.push(vertex);
   }
   return polygon;
 }
@@ -115,8 +115,8 @@ function createPolygon(sides, radius, center) {
 function drawCity(city, svgSpace) {
   // Line function to convert array of points into SVG Path notation
   let lineFunction = d3.line()
-    .x(function (d) { return d[0]; })
-    .y(function (d) { return d[1]; })
+    .x(function (d) { return d.x; })
+    .y(function (d) { return d.y; })
     .curve(d3.curveBasisClosed);
 
   // Draw river as a path  
@@ -137,8 +137,8 @@ function drawRiver(river, svgSpace) {
 
   // Line function to convert array of points into SVG Path notation
   let lineFunction = d3.line()
-    .x(function (d) { return d[0]; })
-    .y(function (d) { return d[1]; })
+    .x(function (d) { return d.x; })
+    .y(function (d) { return d.y; })
     .curve(d3.curveCatmullRom.alpha(0.5));
 
   // Draw river as a path  
@@ -152,13 +152,13 @@ function drawRiver(river, svgSpace) {
 /**
  * Calculates the Euclidean distance between two points
  * 
- * @param {array} a   Coordinates [x, y] of first point
- * @param {array} b   Coordinates [x, y] of second point
+ * @param {object} a   Coordinates {x, y} of first point
+ * @param {object} b   Coordinates {x, y} of second point
  * 
  * @return {number}   Euclidan distance between a and b 
  */
 function distanceBetweenPoints(a, b) {
-  return Math.sqrt((b[0] - a[0]) * (b[0] - a[0]) + (b[1] - a[1]) * (b[1] - a[1]))
+  return Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y))
 }
 
 /**
@@ -175,7 +175,7 @@ function createRiver(start, end) {
   let river = [start]
 
   // head is the last point added to the river: the head
-  let head = start.slice()
+  let head = { x: start.x, y: start.y }
 
   while (true) {
     // angleHeadEnd is the angle of the line segment beween head and end
@@ -190,7 +190,7 @@ function createRiver(start, end) {
 
     // Add the last generated point to the river and use it as the new head
     river.push(newRiverPoint);
-    head = newRiverPoint.slice();
+    head = { x: newRiverPoint.x, y: newRiverPoint.y };
 
     // Check if head is close enough to end point
     if (distanceBetweenPoints(head, end) < RIVER_DIST_STEP) {
@@ -214,11 +214,13 @@ function extendCityTerritory(city, center) {
   extendedCity = city.slice();
   for (let i = 0; i < city.length; i++) {
     let angleCenterVertex = getAngle(center, city[i]);
-    let distance = distanceBetweenPoints(city[i], city[(i + 1) % city.length])
+    let distance = distanceBetweenPoints(
+      city[i],
+      city[(i + 1) % city.length])
     let newPoint = sumDisplacement(city[i],
       (getRatio(ANGLE_VARIANCE * 3) + 0.5) * angleCenterVertex,
       (getRatio(VARIANCE) * distance / 2))
-    extendedCity[i] = newPoint;
+    extendedCity[i] = new CityVertex(newPoint.x, newPoint.y, center);
   }
   return extendedCity;
 }
@@ -231,10 +233,10 @@ function extendCityTerritory(city, center) {
 function generateResources(area) {
   let resourceClusters = [];
   for (let i = 0; i < RESOURCE_CLUSTERS; i++) {
-    resourceClusters.push(
-      [Math.random() * area[0],
-      Math.random() * area[1]]
-    );
+    resourceClusters.push({
+      x: Math.random() * area[0],
+      y: Math.random() * area[1]
+    });
   }
   return resourceClusters;
 }
@@ -247,6 +249,21 @@ function drawResources(resources, svgSpace) {
     drawCity(cluster, svgSpace);
   }
 }
+
+class CityVertex {
+  constructor(x, y, center) {
+    this.x = x;
+    this.y = y;
+    this.center = center;
+  }
+}
+
+class City {
+  constructor(vertices) {
+    this.vertices = vertices;
+  }
+}
+
 
 function main() {
 
@@ -262,7 +279,7 @@ function main() {
     .attr("height", "100%")
     .attr("fill", "white");
 
-  let river = createRiver([100, 0], [WIDTH, HEIGHT - 100]);
+  let river = createRiver({ x: 100, y: 0 }, { x: WIDTH, y: HEIGHT - 100 });
   drawRiver(river, svgSpace);
 
   let resources = generateResources([WIDTH, HEIGHT]);
@@ -270,7 +287,7 @@ function main() {
 
   let cityOrigin = river[Math.floor(Math.random() * river.length)]
   let city = createPolygon(POLYGON_SIDES, POLYGON_RADIUS, cityOrigin);
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 10; i++) {
     drawCity(city, svgSpace);
     city = extendCityTerritory(city, cityOrigin)
   }
