@@ -16,7 +16,7 @@ const POLYGON_RADIUS = 15;
 /// Resources constants ///
 const RESOURCE_CLUSTERS = 5;
 const RESOURCE_CLUSTER_RADIUS = 15;
-const RESOURCE_CLUSTER_VARIANCE = 3;
+const RESOURCE_CLUSTER_VARIANCE = 13;
 
 ////// H E L P I N G   F U N C T I O N S /////////////////
 
@@ -38,9 +38,32 @@ function toRadians(angle) {
 
 
 /**
+ * Returns an SVG Drawing space with custom size and background color
+ * 
+ * @param {number} w      Width of the canvas
+ * @param {number} h      Height of the canvas
+ * @param {string} color  Color for the background. Name or RGB.
+ */
+function initializeCanvas(w, h, color) {
+  // Create a svgSpace using D3 with custom dimensions
+  const svgSpace = d3.select("body")
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h);
+
+  // Create a background (useful for certain debugging purposes)
+  svgSpace.append("rect")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .attr("fill", color);
+
+  return svgSpace;
+}
+
+/**
  * Calculates the angle between two points
- * @param {array} a   Start point [x, y]
- * @param {array} b   End point [x, y]
+ * @param {object} a   Start point {x, y}
+ * @param {object} b   End point {x, y}
  * 
  * @return {Number}   Angle between a and b
  */
@@ -50,10 +73,9 @@ function getAngle(a, b) {
 
 /**
  * Gets a ratio [0, 1] from a normal distribution with custom variance
- * @param {array} a   Start point [x, y]
- * @param {array} b   End point [x, y]
+ * @param {number} variance   Represent variance of the distribution
  * 
- * @return {Number}   Angle between a and b
+ * @return {Number}   Random number from of a normal distribution
  */
 function getRatio(variance) {
   r = d3.randomNormal()() / variance + 0.5
@@ -109,10 +131,20 @@ function createPolygon(sides, radius, center) {
 /**
  * Draws a city 
  * 
- * @param {*} city 
- * @param {*} svgSpace 
+ * @param {CityVertex[]} city      Contains all CityVertex of the city
+ * @param {svgSpace} svgSpace      SVG Canvas where city will be drawn
+ * @param {string} color    The color of the city border
+ * @param {number} opacity  Number between 0 and 1 for the border opacity
  */
-function drawCity(city, svgSpace) {
+function drawCity(city, svgSpace, color, opacity) {
+  if (color == null) {
+    color = "black"
+  }
+
+  if (opacity == null) {
+    opacity = 1;
+  }
+
   // Line function to convert array of points into SVG Path notation
   let lineFunction = d3.line()
     .x(function (d) { return d.x; })
@@ -122,9 +154,10 @@ function drawCity(city, svgSpace) {
   // Draw river as a path  
   svgSpace.append("path")
     .attr("d", lineFunction(city))
-    .attr("stroke", "black")
+    .attr("stroke", color)
     .attr("stroke-width", 2)
-    .attr("fill", "none");
+    .attr("fill", "none")
+    .attr("opacity", opacity);
 }
 
 /**
@@ -210,7 +243,7 @@ function createRiver(start, end) {
  * @param {array} city    Contains the vertex of the city
  * @param {array} center  Contains the original center of the city
  */
-function extendCityTerritory(city, center) {
+function extendCityTerritory(city, center, speed, consistency) {
   extendedCity = city.slice();
   for (let i = 0; i < city.length; i++) {
     let angleCenterVertex = getAngle(center, city[i]);
@@ -218,8 +251,8 @@ function extendCityTerritory(city, center) {
       city[i],
       city[(i + 1) % city.length])
     let newPoint = sumDisplacement(city[i],
-      (getRatio(ANGLE_VARIANCE * 3) + 0.5) * angleCenterVertex,
-      (getRatio(VARIANCE) * distance / 2))
+      (getRatio(ANGLE_VARIANCE * 3 * consistency) + 0.5) * angleCenterVertex,
+      (getRatio(VARIANCE * consistency) * distance / 2) * speed)
     extendedCity[i] = new CityVertex(newPoint.x, newPoint.y, center);
   }
   return extendedCity;
@@ -264,20 +297,63 @@ class City {
   }
 }
 
+function searchForResources(city, center, resources, svgSpace) {
+  let exploredArea = city.slice();
+  let resourceInfluence = []
+  for (let i = 0; i < 10; i++) {
+    exploredArea = extendCityTerritory(exploredArea, center, 3, 2)
+    drawCity(exploredArea, svgSpace, "red", 0.2);
+    for (let j = 0; j < resources.length; j++) {
+      if (d3.polygonContains(exploredArea.map(d => [d.x, d.y]), [resources[j].x, resources[j].y])) {
+        drawCity(resources[j], svgSpace, "green", .5)
+        resourceInfluence.push({
+          x: resources[j].x,
+          y: resources[j].y,
+          distanceToCenter: distanceBetweenPoints(resources[j], center)
+        });
+        resources.splice(j, 1);
+      }
+    }
+  }
+
+  function compare(a, b) {
+    if (a.distanceToCenter < b.distanceToCenter)
+      return -1;
+    if (a.distanceToCenter > b.distanceToCenter)
+      return 1;
+    return 0;
+  }
+
+  resourceInfluence.sort(compare);
+
+  for (let i = 0; i < resourceInfluence.length; i++) {
+    Object.assign(resourceInfluence[i], { influence: resourceInfluence.length - i })
+  }
+  return resourceInfluence;
+}
+
+function drawResourceInfluence(influenceNetwork, center, svgSpace) {
+  let lineFunction = d3.line()
+    .x(function (d) { return d.x; })
+    .y(function (d) { return d.y; })
+    .curve(d3.curveLinear);
+
+
+  for (let i = 0, n = influenceNetwork.length; i < n; i++) {
+    svgSpace.append("path")
+      .attr("d", lineFunction([influenceNetwork[i], center]))
+      .attr("stroke", "green")
+      .attr("stroke-width", (n - i))
+      .attr("fill", "none")
+      .attr("opacity", (n - i) / n);
+
+    console.log(influenceNetwork[i]);
+  }
+}
 
 function main() {
 
-  // Create a svgSpace using D3 with custom dimensions
-  const svgSpace = d3.select("body")
-    .append("svg")
-    .attr("width", WIDTH)
-    .attr("height", HEIGHT);
-
-  // Create a background (useful for certain debugging purposes)
-  svgSpace.append("rect")
-    .attr("width", "100%")
-    .attr("height", "100%")
-    .attr("fill", "white");
+  const svgSpace = initializeCanvas(WIDTH, HEIGHT, "white");
 
   let river = createRiver({ x: 100, y: 0 }, { x: WIDTH, y: HEIGHT - 100 });
   drawRiver(river, svgSpace);
@@ -287,9 +363,15 @@ function main() {
 
   let cityOrigin = river[Math.floor(Math.random() * river.length)]
   let city = createPolygon(POLYGON_SIDES, POLYGON_RADIUS, cityOrigin);
-  for (let i = 0; i < 10; i++) {
-    drawCity(city, svgSpace);
-    city = extendCityTerritory(city, cityOrigin)
+  drawCity(city, svgSpace);
+
+  let resourceInfluence = searchForResources(city, cityOrigin, resources, svgSpace);
+  drawResourceInfluence(resourceInfluence, cityOrigin, svgSpace);
+  console.log(resourceInfluence);
+
+  for (let i = 0, n = 15; i < n; i++) {
+    city = extendCityTerritory(city, cityOrigin, 1, 1)
+    drawCity(city, svgSpace, "black", 1 - i * (1 / (1.2 * n)));
   }
 }
 
