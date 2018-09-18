@@ -10,11 +10,11 @@ const ANGLE_VARIANCE = 1;
 const RIVER_DIST_STEP = 150;
 
 /// City birth constants ///
-const POLYGON_SIDES = 6;
+const POLYGON_SIDES = 12;
 const POLYGON_RADIUS = 15;
 
 /// Resources constants ///
-const RESOURCE_CLUSTERS = 5;
+const RESOURCE_CLUSTERS = 3;
 const RESOURCE_CLUSTER_RADIUS = 15;
 const RESOURCE_CLUSTER_VARIANCE = 13;
 
@@ -35,7 +35,6 @@ function toDegrees(angle) {
 function toRadians(angle) {
   return angle * (Math.PI / 180);
 }
-
 
 /**
  * Returns an SVG Drawing space with custom size and background color
@@ -89,6 +88,18 @@ function getRatio(variance) {
 }
 
 /**
+ * Calculates the Euclidean distance between two points
+ * 
+ * @param {object} a   Coordinates {x, y} of first point
+ * @param {object} b   Coordinates {x, y} of second point
+ * 
+ * @return {number}   Euclidan distance between a and b 
+ */
+function distanceBetweenPoints(a, b) {
+  return Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y))
+}
+
+/**
  * Displace a point towards a custom angle with custom distance
  * 
  * @param {object} origin Origin {x, y} for the displacement
@@ -104,95 +115,22 @@ function sumDisplacement(origin, angle, dist) {
   return endPoint;
 }
 
+/**
+ * Sums multiple vectors containing only x and y coordinates
+ * 
+ * @param {array} vectors   Array with all the vectors to be summed
+ *                          each needs to be a {x, y} object
+ */
+function sumVectors(vectors) {
+  let sum = { x: 0, y: 0 };
+  for (let i = 0; i < vectors.length; i++) {
+    sum.x += vectors[i].x;
+    sum.y += vectors[i].y;
+  }
+  return sum;
+}
+
 /////// A C T U A L   A L G O R I T H M S ////////////////
-
-
-/**
- * Creates a polygon with custom center, number of sides, and radius
- * 
- * @param {number} sides    Number of polygon sides
- * @param {number} radius   Distance between center and vertices
- * @param {array} center    Coordinates of center [x, y]
- */
-function createPolygon(sides, radius, center) {
-  let polygon = [];
-  let angleStep = 360 / sides;
-  for (let i = 0, angle = 0; i < sides; i++ , angle += angleStep) {
-    let vertex = new CityVertex(
-      center.x + radius * Math.cos(toRadians(angle)),
-      center.y + radius * Math.sin(toRadians(angle)),
-      center
-    )
-    polygon.push(vertex);
-  }
-  return polygon;
-}
-
-/**
- * Draws a city 
- * 
- * @param {CityVertex[]} city      Contains all CityVertex of the city
- * @param {svgSpace} svgSpace      SVG Canvas where city will be drawn
- * @param {string} color    The color of the city border
- * @param {number} opacity  Number between 0 and 1 for the border opacity
- */
-function drawCity(city, svgSpace, color, opacity) {
-  if (color == null) {
-    color = "black"
-  }
-
-  if (opacity == null) {
-    opacity = 1;
-  }
-
-  // Line function to convert array of points into SVG Path notation
-  let lineFunction = d3.line()
-    .x(function (d) { return d.x; })
-    .y(function (d) { return d.y; })
-    .curve(d3.curveBasisClosed);
-
-  // Draw river as a path  
-  svgSpace.append("path")
-    .attr("d", lineFunction(city))
-    .attr("stroke", color)
-    .attr("stroke-width", 2)
-    .attr("fill", "none")
-    .attr("opacity", opacity);
-}
-
-/**
- * Draws a river
- * 
- * @param {array} river   Points of entire river path [[x, y], ...]
- * @param {svg} svgSpace  Canvas where the river will be drawn
- */
-function drawRiver(river, svgSpace) {
-
-  // Line function to convert array of points into SVG Path notation
-  let lineFunction = d3.line()
-    .x(function (d) { return d.x; })
-    .y(function (d) { return d.y; })
-    .curve(d3.curveCatmullRom.alpha(0.5));
-
-  // Draw river as a path  
-  svgSpace.append("path")
-    .attr("d", lineFunction(river))
-    .attr("stroke", "blue")
-    .attr("stroke-width", 2)
-    .attr("fill", "none");
-}
-
-/**
- * Calculates the Euclidean distance between two points
- * 
- * @param {object} a   Coordinates {x, y} of first point
- * @param {object} b   Coordinates {x, y} of second point
- * 
- * @return {number}   Euclidan distance between a and b 
- */
-function distanceBetweenPoints(a, b) {
-  return Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y))
-}
 
 /**
  * Creates a river that goes (roughly) from start to end
@@ -202,7 +140,7 @@ function distanceBetweenPoints(a, b) {
  * 
  * @return {array}  Points of entire river path [[x, y], ...]
  */
-function createRiver(start, end) {
+function generateRiver(start, end) {
   // river contains all the points from start to end.
   // We initialize it with only start point
   let river = [start]
@@ -238,24 +176,25 @@ function createRiver(start, end) {
 }
 
 /**
- * Grows the city outwards from the center
+ * Draws a river
  * 
- * @param {array} city    Contains the vertex of the city
- * @param {array} center  Contains the original center of the city
+ * @param {array} river   Points of entire river path [[x, y], ...]
+ * @param {svg} svgSpace  Canvas where the river will be drawn
  */
-function extendCityTerritory(city, center, speed, consistency) {
-  extendedCity = city.slice();
-  for (let i = 0; i < city.length; i++) {
-    let angleCenterVertex = getAngle(center, city[i]);
-    let distance = distanceBetweenPoints(
-      city[i],
-      city[(i + 1) % city.length])
-    let newPoint = sumDisplacement(city[i],
-      (getRatio(ANGLE_VARIANCE * 3 * consistency) + 0.5) * angleCenterVertex,
-      (getRatio(VARIANCE * consistency) * distance / 2) * speed)
-    extendedCity[i] = new CityVertex(newPoint.x, newPoint.y, center);
-  }
-  return extendedCity;
+function drawRiver(river, svgSpace) {
+
+  // Line function to convert array of points into SVG Path notation
+  let lineFunction = d3.line()
+    .x(function (d) { return d.x; })
+    .y(function (d) { return d.y; })
+    .curve(d3.curveCatmullRom.alpha(0.5));
+
+  // Draw river as a path  
+  svgSpace.append("path")
+    .attr("d", lineFunction(river))
+    .attr("stroke", "blue")
+    .attr("stroke-width", 2)
+    .attr("fill", "none");
 }
 
 /**
@@ -274,14 +213,129 @@ function generateResources(area) {
   return resourceClusters;
 }
 
+/**
+ * Draws resource clusters with random size
+ * 
+ * @param {array} resources     Contains the coordinates of each cluster center
+ * @param {svgSpace} svgSpace   SVG element for the cluster to be drawn
+ */
 function drawResources(resources, svgSpace) {
   for (let i = 0; i < resources.length; i++) {
-    let cluster = createPolygon(5,
+    let cluster = generatePolygon(5,
       getRatio(RESOURCE_CLUSTER_VARIANCE) * RESOURCE_CLUSTER_RADIUS,
       resources[i]);
-    drawCity(cluster, svgSpace);
+    drawPolygon(cluster, svgSpace);
   }
 }
+
+/**
+ * Creates a polygon with custom center, number of sides, and radius
+ * 
+ * @param {number} sides    Number of polygon sides
+ * @param {number} radius   Distance between center and vertices
+ * @param {array} center    Coordinates of center [x, y]
+ */
+function generatePolygon(sides, radius, center) {
+  let polygon = [];
+  let angleStep = 360 / sides;
+  for (let i = 0, angle = 0; i < sides; i++ , angle += angleStep) {
+    let vertex = new CityVertex(
+      center.x + radius * Math.cos(toRadians(angle)),
+      center.y + radius * Math.sin(toRadians(angle)),
+      center
+    )
+    polygon.push(vertex);
+  }
+  return polygon;
+}
+
+/**
+ * Draws a city 
+ * 
+ * @param {CityVertex[]} city      Contains all CityVertex of the city
+ * @param {svgSpace} svgSpace      SVG Canvas where city will be drawn
+ * @param {string} color    The color of the city border
+ * @param {number} opacity  Number between 0 and 1 for the border opacity
+ */
+function drawPolygon(polygon, svgSpace, color, opacity) {
+  if (color == null) {
+    color = "black"
+  }
+
+  if (opacity == null) {
+    opacity = 1;
+  }
+
+  // Line function to convert array of points into SVG Path notation
+  let lineFunction = d3.line()
+    .x(function (d) { return d.x; })
+    .y(function (d) { return d.y; })
+    .curve(d3.curveBasisClosed);
+
+  // Draw polygon as a path  
+  svgSpace.append("path")
+    .attr("d", lineFunction(polygon))
+    .attr("stroke", color)
+    .attr("stroke-width", 2)
+    .attr("fill", "none")
+    .attr("opacity", opacity);
+}
+
+
+function getNaturalDisplacement(center, vertex, radius, consistency) {
+  let angleCenterVertex = getAngle(center, vertex);
+  let displacementVector = sumDisplacement({ x: 0, y: 0 },
+    (getRatio(ANGLE_VARIANCE * 3 * consistency) + 0.5) * angleCenterVertex,
+    radius * 1.2)
+
+  return displacementVector;
+}
+
+function getInfluencedDisplacement(vertex, resource, radius) {
+  let angleVertexResource = getAngle(vertex, resource);
+  let displacementVector = sumDisplacement({ x: 0, y: 0 },
+    angleVertexResource,
+    radius * .4);
+
+  return displacementVector;
+}
+
+/**
+ * Grows the city outwards from the center
+ * 
+ * @param {array} city                Contains the vertex of the city
+ * @param {array} center              Contains the original center of the city
+ * @param {array} resourceInfluence   Contains explored resources and its influence
+ *                                    city territorial expansion
+ * @param {number} speed              Speed of growth. Bigger means faster (or further)
+ * @param {number} consistency        Avoid random growth direction and distance
+ */
+function extendCityTerritory(city, center, resourceInfluence, speed, consistency) {
+  extendedCity = city.slice();
+  for (let i = 0; i < city.length; i++) {
+    let distance = distanceBetweenPoints(
+      city[i],
+      city[(i + 1) % city.length])
+
+    let radius = (getRatio(VARIANCE * consistency) * distance / 2) * speed;
+
+    let naturalDisplacementVector =
+      getNaturalDisplacement(center, city[i], radius, consistency);
+
+    let influencedDisplacementVector = { x: 0, y: 0 }
+
+    for (let j = 0; j < resourceInfluence.length; j++) {
+      let individualDisplacement = getInfluencedDisplacement(city[i], resourceInfluence[j], radius);
+      influencedDisplacementVector.x += individualDisplacement.x
+      influencedDisplacementVector.y += individualDisplacement.y
+    }
+    let newPoint = sumVectors([city[i], naturalDisplacementVector, influencedDisplacementVector]);
+
+    extendedCity[i] = new CityVertex(newPoint.x, newPoint.y, center);
+  }
+  return extendedCity;
+}
+
 
 class CityVertex {
   constructor(x, y, center) {
@@ -297,15 +351,17 @@ class City {
   }
 }
 
-function searchForResources(city, center, resources, svgSpace) {
+function exploreEnvironment(city, center, resources, drawAreas, svgSpace) {
   let exploredArea = city.slice();
   let resourceInfluence = []
   for (let i = 0; i < 10; i++) {
-    exploredArea = extendCityTerritory(exploredArea, center, 3, 2)
-    drawCity(exploredArea, svgSpace, "red", 0.2);
+    exploredArea = extendCityTerritory(exploredArea, center, 1, 13, 100)
+    if (drawAreas) {
+      drawPolygon(exploredArea, svgSpace, "red", 0.2);
+    }
     for (let j = 0; j < resources.length; j++) {
       if (d3.polygonContains(exploredArea.map(d => [d.x, d.y]), [resources[j].x, resources[j].y])) {
-        drawCity(resources[j], svgSpace, "green", .5)
+        drawPolygon(resources[j], svgSpace, "green", .5)
         resourceInfluence.push({
           x: resources[j].x,
           y: resources[j].y,
@@ -325,10 +381,11 @@ function searchForResources(city, center, resources, svgSpace) {
   }
 
   resourceInfluence.sort(compare);
-
+  console.log(resourceInfluence)
   for (let i = 0; i < resourceInfluence.length; i++) {
     Object.assign(resourceInfluence[i], { influence: resourceInfluence.length - i })
   }
+
   return resourceInfluence;
 }
 
@@ -346,8 +403,6 @@ function drawResourceInfluence(influenceNetwork, center, svgSpace) {
       .attr("stroke-width", (n - i))
       .attr("fill", "none")
       .attr("opacity", (n - i) / n);
-
-    console.log(influenceNetwork[i]);
   }
 }
 
@@ -355,24 +410,24 @@ function main() {
 
   const svgSpace = initializeCanvas(WIDTH, HEIGHT, "white");
 
-  let river = createRiver({ x: 100, y: 0 }, { x: WIDTH, y: HEIGHT - 100 });
+  let river = generateRiver({ x: 100, y: 0 }, { x: WIDTH, y: HEIGHT - 100 });
   drawRiver(river, svgSpace);
 
   let resources = generateResources([WIDTH, HEIGHT]);
   drawResources(resources, svgSpace);
 
   let cityOrigin = river[Math.floor(Math.random() * river.length)]
-  let city = createPolygon(POLYGON_SIDES, POLYGON_RADIUS, cityOrigin);
-  drawCity(city, svgSpace);
+  let city = generatePolygon(POLYGON_SIDES, POLYGON_RADIUS, cityOrigin);
+  drawPolygon(city, svgSpace);
 
-  let resourceInfluence = searchForResources(city, cityOrigin, resources, svgSpace);
+  let resourceInfluence = exploreEnvironment(city, cityOrigin, resources, true, svgSpace);
   drawResourceInfluence(resourceInfluence, cityOrigin, svgSpace);
-  console.log(resourceInfluence);
 
-  for (let i = 0, n = 15; i < n; i++) {
-    city = extendCityTerritory(city, cityOrigin, 1, 1)
-    drawCity(city, svgSpace, "black", 1 - i * (1 / (1.2 * n)));
+  for (let i = 0, n = 25; i < n; i++) {
+    city = extendCityTerritory(city, cityOrigin, resourceInfluence, 1, 3)
+    drawPolygon(city, svgSpace, "black", 1 - i * (1 / (1.1 * n)));
   }
+
 }
 
 main()
