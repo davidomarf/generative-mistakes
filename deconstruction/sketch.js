@@ -5,6 +5,9 @@
  * - Make solid fills be a single rectangle of accent color,
  *   with few rectangles of background color inside
  *   (instead of many rectangles of accent color)
+ * - Make propagation function recursive.
+ * - Make clusters a special type, with each slab having a probability
+ *   to be either solid or chess
  */
 
 /*************** PRIMARY CONSTANTS ***************/
@@ -17,12 +20,12 @@ const CELL_SIZE = 2;        // Size in square pixels for a single cell
 const SLAB_SIZE = 4;        // Size in cells for a slab
 
 const DENSITY_DOT = 0.01;    // Probability of a slab to be single-dot-filled
-const DENSITY_CHESS = 0.001;  // Probability of a slab to be chess-filled
-const DENSITY_SOLID = 0.001;  // Probability of a slab to be solid-filled
-const DENSITY_RAIN = 0.01;   // Probability of a cell to be rain-centers
+const DENSITY_CHESS = 0.0005;  // Probability of a slab to be chess-filled
+const DENSITY_SOLID = 0.0001;  // Probability of a slab to be solid-filled
+const DENSITY_RAIN = 0.005  ;   // Probability of a cell to be rain-centers
 
 const RAIN_MIN_LENGTH = 2;  // Minimum span of a rain-drop
-const RAIN_MAX_LENGTH = 8;  // Maximum span of a rain-drop
+const RAIN_MAX_LENGTH = 6;  // Maximum span of a rain-drop
 
 /************** SECONDARY CONSTANTS **************/
 
@@ -38,7 +41,7 @@ const NO_OF_RAIN = NO_OF_CELLS * DENSITY_RAIN   // Number of cells to be rain-ce
 /************** CONSISTENCY VARIABLES **************/
 
 const CHESS_CONSISTENCY = 0.9;
-const SOLID_CONSISTENCY = 0.9;
+const SOLID_CONSISTENCY = 0.95;
 
 /******************** FUNCTIONS ********************/
 
@@ -278,6 +281,15 @@ function main() {
         let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
         let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
         fill_chess([
+            x - (x % (SLAB_SIZE*CELL_SIZE)),
+            y - (y % (SLAB_SIZE*CELL_SIZE))
+        ])
+    }
+
+    for(let i = 0; i < NO_OF_SOLID; i++){
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
+        fill_solid([
             x - (x % (SLAB_SIZE*CELL_SIZE)),
             y - (y % (SLAB_SIZE*CELL_SIZE))
         ])
