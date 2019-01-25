@@ -4,6 +4,10 @@
  * - Clean useless parts of the code
  * - Create functions to propagate from clusters
  * - Avoid repeating code (LOC 207-232)
+ * - Add raindrops
+ * - Make solid fills be a single rectangle of accent color,
+ *   with few rectangles of background color inside
+ *   (instead of many rectangles of accent color)
  */
 
 /**
