@@ -1,7 +1,6 @@
 /**
  * TO-DO
  * 
- * - Clean useless parts of the code
  * - Create functions to propagate from clusters
  * - Avoid repeating code (LOC 207-232)
  * - Add raindrops
@@ -49,6 +48,10 @@ const NO_OF_RAIN = NO_OF_CELLS * DENSITY_RAIN   // Number of cells to be rain-ce
 const CHESS_CONSISTENCY = 0.9;
 const SOLID_CONSISTENCY = 0.9;
 
+/**
+ * Create the svgSpace and make it global (is this an antipattern?)
+ */
+const svgSpace = initializeCanvas(WIDTH, HEIGHT, "#0B0B0B");
 
 /**
  * Slab-filling functions
@@ -70,8 +73,8 @@ const SOLID_CONSISTENCY = 0.9;
  */
 function fill_dot(slab){
     fillTile(
-        slab[0] + SLAB_SIZE * CELL_SIZE,
-        slab[1] + SLAB_SIZE * CELL_SIZE,
+        [slab[0] + SLAB_SIZE * CELL_SIZE,
+        slab[1] + SLAB_SIZE * CELL_SIZE],
         CELL_SIZE);
 }
 
@@ -90,53 +93,47 @@ function fill_chess(slab){
                 (i+j)%2 == 1 && Math.random() > CHESS_CONSISTENCY)
                 {
                     fillTile(
-                        slab[0] + i * CELL_SIZE,
-                        slab[1] + j * CELL_SIZE,
+                        [slab[0] + i * CELL_SIZE,
+                        slab[1] + j * CELL_SIZE],
                         CELL_SIZE)
                 }
         }
     }
 }
 
+/**
+ * Fills slab in a solid color
+ * @param {Array} slab  Contains [x, y] coordinates
+ */
 function fill_solid(slab){
     for(let i = 0; i < SLAB_SIZE; i++){
         for(let j = 0; j < SLAB_SIZE; j++){
             if(Math.random() < SOLID_CONSISTENCY){
                 fillTile(
-                    slab[0] + i * CELL_SIZE,
-                    slab[1] + j * CELL_SIZE,
+                    [slab[0] + i * CELL_SIZE,
+                    slab[1] + j * CELL_SIZE],
                     CELL_SIZE)
             }
         }
     }
 }
 
-const svgSpace = initializeCanvas(WIDTH, HEIGHT, "#0B0B0B");
-
-function drawGrid(width, height, gridSize) {
-    let grid = 1;
-    for (let i = 0; i < width; i += gridSize) {
-        for (let j = 0; j < height; j += gridSize) {
-            svgSpace
-                .append("circle")
-                .attr("cx", i)
-                .attr("cy", j)
-                .attr("r", DOT_SIZE_PX)
-                .attr("fill", "black");
-        }
-    }
-    return 0;
-}
-
-function drawPoint(x, y) {
-    svgSpace
-        .append("circle")
-        .attr("cx", x)
-        .attr("cy", y)
-        .attr("r", DOT_SIZE_PX)
-        .attr("fill", "black");
-}
-
+/**
+ * From a base-point, generates a new point that is displaced by dx units
+ * in the ith direction.
+ * 
+ * Directions:
+ * 
+ *    8  1  2
+ *    7  x  3
+ *    6  5  4
+ * 
+ * @param {number[]} point  [x,y] coordinates
+ * @param {number} i        0<i<=8 Indicates the direction of displacement
+ * @param {number} dx       Distance of the displacement
+ * 
+ * @return {number[]}       [x, y] coordinates
+ */
 function getNextPoint(point, i, dx) {
     newPoint = point.slice()
     switch (i) {
@@ -153,55 +150,23 @@ function getNextPoint(point, i, dx) {
     return newPoint;
 }
 
-function fillTile(x, y, tileSize) {
+/**
+ * Fill one tile of size tileSize in coordinates [x, y] with
+ * a solid color
+ * 
+ * @param {number[]} tile       Coordinates of the tile
+ * @param {number} tileSize     Size of the tile in px
+ */
+function fillTile(tile, tileSize) {
     if (tileSize === null) tileSize = GRID_SIZE;
     svgSpace.append("rect")
-        .attr("x", x + tileSize / 2)
-        .attr("y", y + tileSize / 2)
+        .attr("x", tile[0] + tileSize / 2)
+        .attr("y", tile[1] + tileSize / 2)
         .attr("width", tileSize)
         .attr("height", tileSize)
         .attr("stroke-width", 0)
         .attr("opacity", 1)
         .attr("fill", "#D8D8D8");
-}
-
-// function fillWithDots(x, y) {
-//     for (let i = 0; i < GRID_SIZE; i += DOT_SIZE_PX) {
-//         for (let j = 0; j < GRID_SIZE; j += DOT_SIZE_PX) {
-//             if (d3.randomUniform()() > 0.7) {
-//                 fillTile(x + i, y+j, DOT_SIZE_PX)
-//             }
-//         }
-//     }
-// }
-
-function fillWithDots(x, y) {
-    for (let i = 0; i < GRID_SIZE; i += DOT_SIZE_PX) {
-        fillTile(x + GRID_SIZE - i, y + i, DOT_SIZE_PX)
-    }
-}
-
-function createRandomPoints(max_x, max_y) {
-    for (let i = 0; i < SATURATION_LEVEL; i++) {
-
-        let cluster_center = [d3.randomUniform()() * max_x, d3.randomUniform()() * max_y]
-            .map(x => GRID_SIZE * Math.floor(x / GRID_SIZE));
-
-        fillTile(cluster_center[0], cluster_center[1]);
-
-        for (let k = 0; k < 8; k++) {
-            let nextPoint = cluster_center
-            for (let j = 0; j < MAXIMUM_SPAN; j++) {
-                nextPoint = getNextPoint(nextPoint, k)
-                if (d3.randomUniform()() > 0.2) {
-                    // drawPoint(nextPoint[0], nextPoint[1]);
-                    fillTile(nextPoint[0], nextPoint[1]);
-                    fillWithDots(nextPoint[0], nextPoint[1]);
-                } else { break }
-            }
-        }
-
-    }
 }
 
 function main() {
@@ -239,8 +204,7 @@ function main() {
 
 
 /**
- * Receives the center of a cluster, that it
- * generates around it
+ * Receives one slab, and generates a cluster around it
  * 
  * @param {*} center    Center coordinates
  */
