@@ -9,9 +9,7 @@
  *   (instead of many rectangles of accent color)
  */
 
-/**
- * Primary constants
- */
+/*************** PRIMARY CONSTANTS ***************/
 
 const WIDTH = 600;          // SVG Element Width
 const HEIGHT = 600;         // SVG Element Height
@@ -28,9 +26,7 @@ const DENSITY_RAIN = 0.01;   // Probability of a cell to be rain-centers
 const RAIN_MIN_LENGTH = 4;  // Minimum span of a rain-drop
 const RAIN_MAX_LENGTH = 8;  // Maximum span of a rain-drop
 
-/**
- * Dependent constants
- */
+/************** SECONDARY CONSTANTS **************/
 
 const NO_OF_CELLS = WIDTH * HEIGHT / (CELL_SIZE * CELL_SIZE)    // Total number of cells
 const NO_OF_SLABS_X = WIDTH / (CELL_SIZE * SLAB_SIZE)           // Slabs on X
@@ -41,30 +37,104 @@ const NO_OF_CHESS = NO_OF_CELLS * DENSITY_CHESS // Number of slabs to be chess-f
 const NO_OF_SOLID = NO_OF_CELLS * DENSITY_SOLID // Number of slabs to be solid-filled
 const NO_OF_RAIN = NO_OF_CELLS * DENSITY_RAIN   // Number of cells to be rain-centers
 
-/**
- * Consistency Indexes
- */
+/************** CONSISTENCY VARIABLES **************/
 
 const CHESS_CONSISTENCY = 0.9;
 const SOLID_CONSISTENCY = 0.9;
 
-/**
- * Create the svgSpace and make it global (is this an antipattern?)
+/******************** FUNCTIONS ********************/
+
+// Helping functions
+//
+// Not relevant to the specific algorithm. May be used
+// in other projects cause their generality.
+
+ /**
+ * From a base-point, generates a new point that is displaced by dx units
+ * in the ith direction.
+ * 
+ * Directions:
+ * 
+ *    8  1  2
+ *    7  x  3
+ *    6  5  4
+ * 
+ * @param {number[]} point  [x,y] coordinates
+ * @param {number} i        0<i<=8 Indicates the direction of displacement
+ * @param {number} dx       Distance of the displacement
+ * 
+ * @return {number[]}       [x, y] coordinates
  */
-const svgSpace = initializeCanvas(WIDTH, HEIGHT, "#0B0B0B");
+function getNextPoint(point, i, dx) {
+    newPoint = point.slice()
+    switch (i) {
+        case 1: newPoint[1] -= dx; break;
+        case 2: newPoint[0] += dx; newPoint[1] -= dx; break;
+        case 3: newPoint[0] += dx; break;
+        case 4: newPoint[0] += dx; newPoint[1] += dx; break;
+        case 5: newPoint[1] += dx; break;
+        case 6: newPoint[0] -= dx; newPoint[1] += dx; break;
+        case 7: newPoint[0] -= dx; break;
+        case 8: newPoint[0] -= dx; newPoint[1] -= dx; break;
+    }
+
+    return newPoint;
+}
 
 /**
- * Slab-filling functions
- *
- * Receiving the coordinates of the cell (0,0) of a slab,
- * fills the corresponding cells following a pattern:
- *  - Dot: Fill either cell(0,0) or cell(SLAB_SIZE, SLAB_SIZE)
- *  - Chess: Fill slab in a chess-grid pattern
- *  - Solid: Fill every cell in a slab
- *
- * Every pattern has an inconsistency ratio, that perturbates
- * the original pattern
+ * Fill one tile of size tileSize in coordinates [x, y] with
+ * a solid color
+ * 
+ * @param {number[]} tile       Coordinates of the tile
+ * @param {number} tileSize     Size of the tile in px
  */
+function fillTile(tile, tileSize) {
+    if (tileSize === null) tileSize = GRID_SIZE;
+    svgSpace.append("rect")
+        .attr("x", tile[0] + tileSize / 2)
+        .attr("y", tile[1] + tileSize / 2)
+        .attr("width", tileSize)
+        .attr("height", tileSize)
+        .attr("stroke-width", 0)
+        .attr("opacity", 1)
+        .attr("fill", "#D8D8D8");
+}
+
+/**
+ * Returns an SVG Element of size w x h and filled with color
+ *
+ * @param {integer} w       Width
+ * @param {integer} h       Height
+ * @param {string} color    Color
+ */
+function initializeCanvas(w, h, color) {
+    // Create a svgSpace using D3 with custom dimensions
+    const svgSpace = d3.select("body")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
+
+    // Create a background (useful for certain debugging purposes)
+    if(color != null){
+        svgSpace.append("rect")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("fill", color);
+    }
+
+    return svgSpace;
+}
+
+// Slab-filling functions
+//
+// Receiving the coordinates of the cell (0,0) of a slab,
+// fills the corresponding cells following a pattern:
+//  - Dot: Fill either cell(0,0) or cell(SLAB_SIZE, SLAB_SIZE)
+//  - Chess: Fill slab in a chess-grid pattern
+//  - Solid: Fill every cell in a slab
+//
+// Every pattern has a consistency ratio, that perturbates
+// the original pattern. Check 
 
 /**
  * Fill last cell in slab
@@ -118,90 +188,10 @@ function fill_solid(slab){
     }
 }
 
-/**
- * From a base-point, generates a new point that is displaced by dx units
- * in the ith direction.
- * 
- * Directions:
- * 
- *    8  1  2
- *    7  x  3
- *    6  5  4
- * 
- * @param {number[]} point  [x,y] coordinates
- * @param {number} i        0<i<=8 Indicates the direction of displacement
- * @param {number} dx       Distance of the displacement
- * 
- * @return {number[]}       [x, y] coordinates
- */
-function getNextPoint(point, i, dx) {
-    newPoint = point.slice()
-    switch (i) {
-        case 1: newPoint[1] -= dx; break;
-        case 2: newPoint[0] += dx; newPoint[1] -= dx; break;
-        case 3: newPoint[0] += dx; break;
-        case 4: newPoint[0] += dx; newPoint[1] += dx; break;
-        case 5: newPoint[1] += dx; break;
-        case 6: newPoint[0] -= dx; newPoint[1] += dx; break;
-        case 7: newPoint[0] -= dx; break;
-        case 8: newPoint[0] -= dx; newPoint[1] -= dx; break;
-    }
-
-    return newPoint;
-}
-
-/**
- * Fill one tile of size tileSize in coordinates [x, y] with
- * a solid color
- * 
- * @param {number[]} tile       Coordinates of the tile
- * @param {number} tileSize     Size of the tile in px
- */
-function fillTile(tile, tileSize) {
-    if (tileSize === null) tileSize = GRID_SIZE;
-    svgSpace.append("rect")
-        .attr("x", tile[0] + tileSize / 2)
-        .attr("y", tile[1] + tileSize / 2)
-        .attr("width", tileSize)
-        .attr("height", tileSize)
-        .attr("stroke-width", 0)
-        .attr("opacity", 1)
-        .attr("fill", "#D8D8D8");
-}
-
-function main() {
-    // const svgSpace = initializeCanvas(WIDTH, HEIGHT, "white");
-    // const grid = drawGrid(WIDTH, HEIGHT, GRID_SIZE, svgSpace);
-    // createRandomPoints(WIDTH, HEIGHT);
-    for(let i = 0; i < NO_OF_DOT; i++){
-        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
-        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
-        fill_dot([
-            x - (x % (SLAB_SIZE*CELL_SIZE)),
-            y - (y % (SLAB_SIZE*CELL_SIZE))
-        ])
-    }
-
-    for(let i = 0; i < NO_OF_CHESS; i++){
-        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
-        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
-        fill_chess([
-            x - (x % (SLAB_SIZE*CELL_SIZE)),
-            y - (y % (SLAB_SIZE*CELL_SIZE))
-        ])
-    }
-
-    for (let i = 0; i < 6; i++) {
-        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
-        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
-        x = x - (x % (SLAB_SIZE*CELL_SIZE));
-        y = y - (y % (SLAB_SIZE*CELL_SIZE))
-        let cluster = propagateCluster([x, y])
-        // fill_solid([x, y])
-    }
-
-}
-
+// Propagation functions
+//
+// Main and helping functions just for the
+// propagator/cluster-maker
 
 /**
  * Receives one slab, and generates a cluster around it
@@ -251,37 +241,44 @@ function propagateCluster(center) {
     // console.log(direction);
 }
 
-/**
- * Standard-drawing functions
- *
- * D3 functions that I'll reuse in other projects and
- * just sets the beginning of any project
- */
-
 
 /**
- * Returns an SVG Element of size w x h and filled with color
- *
- * @param {integer} w       Width
- * @param {integer} h       Height
- * @param {string} color    Color
+ * Create the svgSpace and make it global (is this an antipattern?)
  */
-function initializeCanvas(w, h, color) {
-    // Create a svgSpace using D3 with custom dimensions
-    const svgSpace = d3.select("body")
-        .append("svg")
-        .attr("width", w)
-        .attr("height", h);
+const svgSpace = initializeCanvas(WIDTH, HEIGHT, "#0B0B0B");
 
-    // Create a background (useful for certain debugging purposes)
-    if(color != null){
-        svgSpace.append("rect")
-            .attr("width", "100%")
-            .attr("height", "100%")
-            .attr("fill", color);
+
+function main() {
+    // const svgSpace = initializeCanvas(WIDTH, HEIGHT, "white");
+    // const grid = drawGrid(WIDTH, HEIGHT, GRID_SIZE, svgSpace);
+    // createRandomPoints(WIDTH, HEIGHT);
+    for(let i = 0; i < NO_OF_DOT; i++){
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
+        fill_dot([
+            x - (x % (SLAB_SIZE*CELL_SIZE)),
+            y - (y % (SLAB_SIZE*CELL_SIZE))
+        ])
     }
 
-    return svgSpace;
+    for(let i = 0; i < NO_OF_CHESS; i++){
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
+        fill_chess([
+            x - (x % (SLAB_SIZE*CELL_SIZE)),
+            y - (y % (SLAB_SIZE*CELL_SIZE))
+        ])
+    }
+
+    for (let i = 0; i < 6; i++) {
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
+        x = x - (x % (SLAB_SIZE*CELL_SIZE));
+        y = y - (y % (SLAB_SIZE*CELL_SIZE))
+        let cluster = propagateCluster([x, y])
+        // fill_solid([x, y])
+    }
+
 }
 
 main()
