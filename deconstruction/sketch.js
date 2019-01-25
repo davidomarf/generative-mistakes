@@ -133,17 +133,17 @@ function drawPoint(x, y) {
         .attr("fill", "black");
 }
 
-function getNextPoint(point, i) {
+function getNextPoint(point, i, dx) {
     newPoint = point.slice()
     switch (i) {
-        case 0: newPoint[0] += 10; break;
-        case 1: newPoint[0] += 10; newPoint[1] -= 10; break;
-        case 2: newPoint[1] -= 10; break;
-        case 3: newPoint[0] -= 10; newPoint[1] -= 10; break;
-        case 4: newPoint[0] -= 10; break;
-        case 5: newPoint[0] -= 10; newPoint[1] += 10; break;
-        case 6: newPoint[1] += 10; break;
-        case 7: newPoint[0] += 10; newPoint[1] += 10; break;
+        case 1: newPoint[1] -= dx; break;
+        case 2: newPoint[0] += dx; newPoint[1] -= dx; break;
+        case 3: newPoint[0] += dx; break;
+        case 4: newPoint[0] += dx; newPoint[1] += dx; break;
+        case 5: newPoint[1] += dx; break;
+        case 6: newPoint[0] -= dx; newPoint[1] += dx; break;
+        case 7: newPoint[0] -= dx; break;
+        case 8: newPoint[0] -= dx; newPoint[1] -= dx; break;
     }
 
     return newPoint;
@@ -205,32 +205,82 @@ function main() {
     // const grid = drawGrid(WIDTH, HEIGHT, GRID_SIZE, svgSpace);
     // createRandomPoints(WIDTH, HEIGHT);
     for(let i = 0; i < NO_OF_DOT; i++){
-        let x = Math.random() * WIDTH
-        let y = Math.random() * HEIGHT
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
         fill_dot([
-            x - (x % SLAB_SIZE),
-            y - (y % SLAB_SIZE)
+            x - (x % (SLAB_SIZE*CELL_SIZE)),
+            y - (y % (SLAB_SIZE*CELL_SIZE))
         ])
     }
-    
+
     for(let i = 0; i < NO_OF_CHESS; i++){
-        let x = Math.random() * WIDTH
-        let y = Math.random() * HEIGHT
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
         fill_chess([
             x - (x % SLAB_SIZE),
             y - (y % SLAB_SIZE)
         ])
     }
 
-    for(let i = 0; i < NO_OF_SOLID; i++){
-        let x = Math.random() * WIDTH
-        let y = Math.random() * HEIGHT
-        fill_solid([
-            x - (x % SLAB_SIZE),
-            y - (y % SLAB_SIZE)
-        ])
+    for (let i = 0; i < 6; i++) {
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
+        x = x - (x % SLAB_SIZE);
+        y = y - (y % SLAB_SIZE)
+        let cluster = propagateCluster([x, y])
+        // fill_solid([x, y])
     }
 
+}
+
+
+/**
+ * Receives the center of a cluster, that it
+ * generates around it
+ * 
+ * @param {*} center    Center coordinates
+ */
+function propagateCluster(center) {
+    let direction = Math.ceil(Math.random() * 8);
+    let coordinates = getNextPoint(center, direction, SLAB_SIZE * CELL_SIZE);
+    fill_solid(coordinates);
+    for (let i = 0; i < 8; i++) {
+        let r = Math.random();
+        if (r > 0.9) {
+            if (Math.random() > 0.5) {
+                direction = (direction + 2) % 8;
+            } else {
+                direction = (direction + 6) % 8;
+            }
+        }
+        else if (r > 0.7) {
+            if (Math.random() > 0.5) {
+                direction = (direction + 1) % 8;
+            } else {
+                direction = (direction + 7) % 8;
+            }
+        }
+
+        coordinates = getNextPoint(coordinates, direction, SLAB_SIZE * CELL_SIZE);
+        fill_solid(coordinates);
+
+        let siblings = [
+            getNextPoint(coordinates, (direction + 1) % 8, SLAB_SIZE * CELL_SIZE),
+            getNextPoint(coordinates, (direction + 7) % 8, SLAB_SIZE * CELL_SIZE)
+        ]
+        fill_solid(siblings[0]);
+        fill_solid(siblings[1]);
+
+        siblings = [
+            getNextPoint(coordinates, (direction + 1) % 8, SLAB_SIZE * CELL_SIZE * 2),
+            getNextPoint(coordinates, (direction + 7) % 8, SLAB_SIZE * CELL_SIZE * 2)
+        ]
+        fill_chess(siblings[0]);
+        fill_chess(siblings[1]);
+
+
+    }
+    // console.log(direction);
 }
 
 /**
