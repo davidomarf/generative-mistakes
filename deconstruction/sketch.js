@@ -1,9 +1,7 @@
 /**
  * TO-DO
  * 
- * - Create functions to propagate from clusters
  * - Avoid repeating code (LOC 207-232)
- * - Add raindrops
  * - Make solid fills be a single rectangle of accent color,
  *   with few rectangles of background color inside
  *   (instead of many rectangles of accent color)
@@ -23,7 +21,7 @@ const DENSITY_CHESS = 0.001;  // Probability of a slab to be chess-filled
 const DENSITY_SOLID = 0.001;  // Probability of a slab to be solid-filled
 const DENSITY_RAIN = 0.01;   // Probability of a cell to be rain-centers
 
-const RAIN_MIN_LENGTH = 4;  // Minimum span of a rain-drop
+const RAIN_MIN_LENGTH = 2;  // Minimum span of a rain-drop
 const RAIN_MAX_LENGTH = 8;  // Maximum span of a rain-drop
 
 /************** SECONDARY CONSTANTS **************/
@@ -188,6 +186,20 @@ function fill_solid(slab){
     }
 }
 
+/**
+ * 
+ * @param {number[]} cell [x,y] coordinates 
+ */
+function fill_raindrop(cell){
+    let nextCell = getNextPoint(cell, 6, CELL_SIZE);
+    fillTile(nextCell, CELL_SIZE);
+    let length = Math.floor(RAIN_MIN_LENGTH + Math.random() * (RAIN_MAX_LENGTH - RAIN_MIN_LENGTH));
+    for(let i = 0; i < length; i++){
+        nextCell = getNextPoint(nextCell, 6, CELL_SIZE);
+        fillTile(nextCell, CELL_SIZE);
+    }
+}
+
 // Propagation functions
 //
 // Main and helping functions just for the
@@ -252,6 +264,7 @@ function main() {
     // const svgSpace = initializeCanvas(WIDTH, HEIGHT, "white");
     // const grid = drawGrid(WIDTH, HEIGHT, GRID_SIZE, svgSpace);
     // createRandomPoints(WIDTH, HEIGHT);
+    
     for(let i = 0; i < NO_OF_DOT; i++){
         let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
         let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
@@ -277,6 +290,14 @@ function main() {
         y = y - (y % (SLAB_SIZE*CELL_SIZE))
         let cluster = propagateCluster([x, y])
         // fill_solid([x, y])
+    }
+
+    for (let i = 0; i < 20; i++){
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
+        x = x - (x % (SLAB_SIZE*CELL_SIZE));
+        y = y - (y % (SLAB_SIZE*CELL_SIZE))
+        fill_raindrop([x,y])
     }
 
 }
