@@ -111,7 +111,7 @@ function fill_solid(slab){
     }
 }
 
-const svgSpace = initializeCanvas(WIDTH, HEIGHT, "black");
+const svgSpace = initializeCanvas(WIDTH, HEIGHT, "#0B0B0B");
 
 function drawGrid(width, height, gridSize) {
     let grid = 1;
@@ -162,7 +162,7 @@ function fillTile(x, y, tileSize) {
         .attr("height", tileSize)
         .attr("stroke-width", 0)
         .attr("opacity", 1)
-        .attr("fill", "white");
+        .attr("fill", "#D8D8D8");
 }
 
 // function fillWithDots(x, y) {
