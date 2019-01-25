@@ -217,16 +217,16 @@ function main() {
         let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
         let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
         fill_chess([
-            x - (x % SLAB_SIZE),
-            y - (y % SLAB_SIZE)
+            x - (x % (SLAB_SIZE*CELL_SIZE)),
+            y - (y % (SLAB_SIZE*CELL_SIZE))
         ])
     }
 
     for (let i = 0; i < 6; i++) {
         let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
         let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
-        x = x - (x % SLAB_SIZE);
-        y = y - (y % SLAB_SIZE)
+        x = x - (x % (SLAB_SIZE*CELL_SIZE));
+        y = y - (y % (SLAB_SIZE*CELL_SIZE))
         let cluster = propagateCluster([x, y])
         // fill_solid([x, y])
     }
