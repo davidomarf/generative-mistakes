@@ -1,13 +1,8 @@
 /**
  * TO-DO
  * 
- * - Avoid repeating code (LOC 207-232)
- * - Make solid fills be a single rectangle of accent color,
- *   with few rectangles of background color inside
- *   (instead of many rectangles of accent color)
  * - Make propagation function recursive.
- * - Make clusters a special type, with each slab having a probability
- *   to be either solid or chess
+ * - Re-format code 
  */
 
 /*************** PRIMARY CONSTANTS ***************/
@@ -20,7 +15,7 @@ const CELL_SIZE = 2; // Size in square pixels for a single cell
 const SLAB_SIZE = 4; // Size in cells for a slab
 
 const DENSITY_DOT = 0.05; // Probability of a slab to be single-dot-filled
-const DENSITY_CHESS = 0.03; // Probability of a slab to be chess-filled
+const DENSITY_CHESS = 0.003; // Probability of a slab to be chess-filled
 const DENSITY_SOLID = 0.0005; // Probability of a slab to be solid-filled
 const DENSITY_RAIN = 0.05; // Probability of a cell to be rain-centers
 
@@ -37,8 +32,8 @@ const NO_OF_DOT = NO_OF_CELLS * DENSITY_DOT // Number of slabs with only a singl
 const NO_OF_CHESS = NO_OF_CELLS * DENSITY_CHESS // Number of slabs to be chess-filled
 const NO_OF_SOLID = NO_OF_CELLS * DENSITY_SOLID // Number of slabs to be solid-filled
 const NO_OF_RAIN = NO_OF_CELLS * DENSITY_RAIN // Number of cells to be rain-centers
-const NO_OF_CLUSTERS = 20
-const CLUSTER_EXTENSION = 20
+const NO_OF_CLUSTERS = 40
+const CLUSTER_EXTENSION = 50
 
 /************** CONSISTENCY VARIABLES **************/
 
@@ -50,8 +45,8 @@ const SOLID_CONSISTENCY = 0.95;
 const palette = [
     d3.hsl(331, .98, .47),  // Pink
     d3.hsl(359, .98, .49),  // Red
-    d3.hsl(38, .86, .58),   // Yellow
-    d3.hsl(45, .71, .93),   // White
+    d3.hsl(54, .97, .58),   // Yellow hsl(54,97%,58%)
+    d3.hsl(45, .71, .88),   // White
     d3.hsl(266, .12, .12),  // Black
 ]
 
@@ -118,7 +113,7 @@ function getNextPoint(point, i, dx) {
  * Fill one tile of size tileSize in coordinates [x, y] with
  * a solid color
  * 
- * @param {number[]} tile       Coordinates of the tile
+ * @param {number[]} tile       Coordinates of the top left corner of the tile
  * @param {number} tileSize     Size of the tile in px
  */
 function fillTile(tile, tileSize, color) {
@@ -211,19 +206,25 @@ function fill_chess(slab, color) {
  * @param {Array} slab  Contains [x, y] coordinates
  */
 function fill_solid(slab, color) {
-    if (color === undefined) color = "#D8D8D8"
-    for (let i = 0; i < SLAB_SIZE; i++) {
-        for (let j = 0; j < SLAB_SIZE; j++) {
-            if (Math.random() < SOLID_CONSISTENCY) {
-                fillTile(
-                    [slab[0] + i * CELL_SIZE,
-                        slab[1] + j * CELL_SIZE
-                    ],
-                    CELL_SIZE,
-                    color)
-            }
-        }
+    if (SOLID_CONSISTENCY > 0.5){
+        fillTile([
+            slab[0] - CELL_SIZE/2,
+            slab[1] - CELL_SIZE/2],
+            CELL_SIZE * SLAB_SIZE,
+            color)
     }
+    // for (let i = 0; i < SLAB_SIZE; i++) {
+    //     for (let j = 0; j < SLAB_SIZE; j++) {
+    //         if (Math.random() < SOLID_CONSISTENCY) {
+    //             fillTile(
+    //                 [slab[0] + i * CELL_SIZE,
+    //                     slab[1] + j * CELL_SIZE
+    //                 ],
+    //                 CELL_SIZE,
+    //                 color)
+    //         }
+    //     }
+    // }
 }
 
 /**
@@ -385,21 +386,21 @@ function drawElements(n, func, color){
 /**
  * Create the svgSpace and make it global (is this an antipattern?)
  */
-const svgSpace = initializeCanvas(WIDTH, HEIGHT, palette[3]);
+const svgSpace = initializeCanvas(WIDTH, HEIGHT, palette[4]);
 
 function main() {
 
-    drawElements(NO_OF_DOT, fill_dot, palette[2]);
-    drawElements(NO_OF_CHESS, fill_chess, palette[0]);
+    drawElements(NO_OF_DOT, fill_dot, palette[4]);
+    drawElements(NO_OF_CHESS, fill_chess, palette[2]);
     drawElements(NO_OF_SOLID, fill_solid, palette[4]);
-    drawElements(20, fill_raindrop, palette[0]);
+    drawElements(20, fill_raindrop, palette[2]);
 
     for (let i = 0; i < NO_OF_CLUSTERS; i++) {
         let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
         let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
         x = x - (x % (SLAB_SIZE * CELL_SIZE));
         y = y - (y % (SLAB_SIZE * CELL_SIZE))
-        let cluster = propagateCluster([x, y], palette[0], palette[4])
+        let cluster = propagateCluster([x, y], palette[4], palette[2])
     }
 
 }
