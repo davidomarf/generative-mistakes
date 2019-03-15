@@ -4,11 +4,11 @@ let index_max;
 
 function preload() {
   // img = loadImage('ham.jpg');
-  img = loadImage('https://source.unsplash.com/random/720x360');
+  img = loadImage('https://source.unsplash.com/random/720x720');
 }
 
 function setup() {
-  createCanvas(720, 360);
+  createCanvas(720, 720);
   pixelDensity(1);
   image(img, 0, 0, img.width, img.height);
   loadPixels();
@@ -54,14 +54,35 @@ function draw() {
 
     }
 
+    // for(let sorted_i = 1; sorter_i < sortedPixels.length; i++){
+    //   let sameHue = []
+    //   if (sortedPixels[sorted_i-1][0] == sortedPixels[sorted_i][0]){
+    //     sameHue.push(sortedPixels[sorted_i-1]);
+    //   } else {
+    //     sameHue.push(sortedPixels[sorted_i]);
+    //     sameHue = sameHue.sort(Comparator2);
+    //     sameHue = [];
+    //   }
+    // }
+
     updatePixels();
-    
+
   }
   index++;
 }
 
+const threshold = 10  ;
+
+function closeEnough(a, b) {
+  return (threshold > Math.abs(a - b));
+}
+
 function Comparator(a, b) {
-  r = Math.random();
+  // if (a[0] > 10) return 0;
+  if (closeEnough(a[0], b[0])) {
+    if (a[2] < b[2]) return -1;
+    if (a[2] > b[2]) return 1;
+  }
   if (a[0] < b[0]) return -1;
   if (a[0] > b[0]) return 1;
   return 0;

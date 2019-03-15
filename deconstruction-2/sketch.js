@@ -14,7 +14,7 @@ const CELL_SIZE = 2; // Size in square pixels for a single cell
 // WIDTH%CELL_SIZE and HEIGHT%CELL_SIZE must be 0
 const SLAB_SIZE = 4; // Size in cells for a slab
 
-const DENSITY_DOT = 0.05; // Probability of a slab to be single-dot-filled
+const DENSITY_DOT = 0.014; // Probability of a slab to be single-dot-filled
 const DENSITY_CHESS = 0.003; // Probability of a slab to be chess-filled
 const DENSITY_SOLID = 0.0005; // Probability of a slab to be solid-filled
 const DENSITY_RAIN = 0.05; // Probability of a cell to be rain-centers
@@ -32,24 +32,36 @@ const NO_OF_DOT = NO_OF_CELLS * DENSITY_DOT // Number of slabs with only a singl
 const NO_OF_CHESS = NO_OF_CELLS * DENSITY_CHESS // Number of slabs to be chess-filled
 const NO_OF_SOLID = NO_OF_CELLS * DENSITY_SOLID // Number of slabs to be solid-filled
 const NO_OF_RAIN = NO_OF_CELLS * DENSITY_RAIN // Number of cells to be rain-centers
-const NO_OF_CLUSTERS = 40
-const CLUSTER_EXTENSION = 50
-
+const NO_OF_CLUSTERS = 15
+const CLUSTER_EXTENSION = 40
+const FORCED_DIRECTION = true;
 /************** CONSISTENCY VARIABLES **************/
 
-const CHESS_CONSISTENCY = 0.9;
-const SOLID_CONSISTENCY = 0.95;
+const CHESS_CONSISTENCY = 0.7;
+const SOLID_CONSISTENCY = 0.7;
 
 /****************** COLOR PALETTE ******************/
 
+const mainHue = 220;
+const mainSat = 0.3;
 const palette = [
-    d3.hsl(331, .98, .47),  // Pink
-    d3.hsl(359, .98, .49),  // Red
-    d3.hsl(54, .97, .58),   // Yellow hsl(54,97%,58%)
-    d3.hsl(45, .71, .88),   // White
-    d3.hsl(266, .12, .12),  // Black
+    d3.hsl(mainHue, mainSat, .6),
+    d3.hsl(mainHue, mainSat, .1),
+    d3.hsl(mainHue, mainSat, .2),
+    d3.hsl(10, 1, .5),
+    d3.hsl(mainHue, mainSat, .05),
+    d3.hsl(mainHue, mainSat, .12),
 ]
 
+// const mainHue = 180;
+// const palette = [
+//     d3.hsl(mainHue, .5, .3),  // Pink
+//     d3.hsl(mainHue, .4, .1),  // Red
+//     d3.hsl(mainHue, .3, .2),  // Yellow
+//     d3.hsl(mainHue, .71, .88),  // White
+//     d3.hsl(mainHue, .50, .05),  // Black
+//     d3.hsl(mainHue, .12, .12),  // Black
+// ]
 /******************** FUNCTIONS ********************/
 
 // Helping functions
@@ -206,10 +218,11 @@ function fill_chess(slab, color) {
  * @param {Array} slab  Contains [x, y] coordinates
  */
 function fill_solid(slab, color) {
-    if (SOLID_CONSISTENCY > 0.5){
+    if (SOLID_CONSISTENCY > 0.5) {
         fillTile([
-            slab[0] - CELL_SIZE/2,
-            slab[1] - CELL_SIZE/2],
+                slab[0] - CELL_SIZE / 2,
+                slab[1] - CELL_SIZE / 2
+            ],
             CELL_SIZE * SLAB_SIZE,
             color)
     }
@@ -254,21 +267,12 @@ function fill_raindrop(cell, color) {
 function propagateCluster(center, c1, c2, c3) {
     let direction = Math.ceil(Math.random() * 8);
     let coordinates = getNextPoint(center, direction, SLAB_SIZE * CELL_SIZE);
-    fill_solid(coordinates, getSimilarColor(c1, 10, .2, .2));
+    fill_solid(coordinates, getSimilarColor(c1, 10, .05, .05));
     for (let i = 0; i < CLUSTER_EXTENSION; i++) {
-        let r = Math.random();
-        if (r > 0.9) {
-            if (Math.random() > 0.5) {
-                direction = (direction + 2) % 8;
-            } else {
-                direction = (direction + 6) % 8;
-            }
-        } else if (r > 0.7) {
-            if (Math.random() > 0.5) {
-                direction = (direction + 1) % 8;
-            } else {
-                direction = (direction + 7) % 8;
-            }
+        if (FORCED_DIRECTION) {
+            direction = forceDirection(direction);
+        } else {
+            direction = Math.ceil(Math.random() * 8);
         }
 
         coordinates = getNextPoint(coordinates, direction, SLAB_SIZE * CELL_SIZE);
@@ -276,12 +280,12 @@ function propagateCluster(center, c1, c2, c3) {
             fill_solid(coordinates,
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
         } else {
             fill_chess(coordinates,
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
         }
 
         let siblings = [
@@ -290,26 +294,26 @@ function propagateCluster(center, c1, c2, c3) {
         ]
 
         if (Math.random() > 0.5) {
-            
+
             fill_solid(siblings[0],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
 
             fill_solid(siblings[1],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
         } else {
             fill_chess(siblings[0],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
 
             fill_chess(siblings[1],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
         }
         siblings = [
             getNextPoint(coordinates, (direction + 1) % 8, SLAB_SIZE * CELL_SIZE * 2),
@@ -317,26 +321,26 @@ function propagateCluster(center, c1, c2, c3) {
         ]
 
         if (Math.random() > 0.5) {
-            
+
             fill_solid(siblings[0],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
 
             fill_solid(siblings[1],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
         } else {
             fill_chess(siblings[0],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
 
             fill_chess(siblings[1],
                 getSimilarColor(
                     getColorBetweenColors(c1, c2, i / CLUSTER_EXTENSION),
-                    10, .2, .2));
+                    10, .05, .05));
         }
 
 
@@ -347,6 +351,7 @@ function propagateCluster(center, c1, c2, c3) {
 
 
 function getColorBetweenColors(color1, color2, proportion) {
+    if (proportion > 1) proportion = 1;
     let c1 = color1;
     let c2 = color2;
     let resultantColor = d3.hsl(
@@ -359,6 +364,7 @@ function getColorBetweenColors(color1, color2, proportion) {
 }
 
 function getSimilarColor(color, dh, ds, dl) {
+    return color;
     if (dh === undefined) dh = 30;
     if (ds === undefined) ds = .3;
     if (dl === undefined) dl = .3;
@@ -371,7 +377,7 @@ function getSimilarColor(color, dh, ds, dl) {
     return newColor;
 }
 
-function drawElements(n, func, color){
+function drawElements(n, func, color) {
     for (let i = 0; i < n; i++) {
         let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
         let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
@@ -383,25 +389,80 @@ function drawElements(n, func, color){
     }
 }
 
+function forceDirection(direction) {
+    let r = Math.random();
+    if (r > 0.9) {
+        if (Math.random() > 0.5) {
+            direction = (direction + 2) % 8;
+        } else {
+            direction = (direction + 6) % 8;
+        }
+    } else if (r > 0.7) {
+        if (Math.random() > 0.5) {
+            direction = (direction + 1) % 8;
+        } else {
+            direction = (direction + 7) % 8;
+        }
+    }
+    return direction;
+}
+
+function distanceBetweenPoints(a, b) {
+    return Math.sqrt(Math.pow(b[0] - a[0], 2) + Math.pow(b[1] - a[1], 2))
+}
+
+function propagateCluster2(center, c1, c2, c3) {
+    let direction = Math.ceil(Math.random() * 8);
+    let coordinates = getNextPoint(center, direction, SLAB_SIZE * CELL_SIZE);
+    fill_dot(coordinates, c1);
+    for (let i = 0; i < CLUSTER_EXTENSION; i++) {
+        if (FORCED_DIRECTION) {
+            direction = forceDirection(direction);
+        } else {
+            direction = Math.ceil(Math.random() * 8);
+        }
+
+        coordinates = getNextPoint(coordinates, direction, SLAB_SIZE * CELL_SIZE);
+        let distance = distanceBetweenPoints(center, coordinates) / (CELL_SIZE * SLAB_SIZE);
+        let color = getSimilarColor(
+            getColorBetweenColors(c1, c2, distance / 10),
+            10, .05, .05);
+        fill_dot(coordinates,
+            color);
+
+
+    }
+}
+
+
 /**
  * Create the svgSpace and make it global (is this an antipattern?)
  */
-const svgSpace = initializeCanvas(WIDTH, HEIGHT, palette[4]);
+const svgSpace = initializeCanvas(WIDTH, HEIGHT, palette[5]);
 
 function main() {
 
-    drawElements(NO_OF_DOT, fill_dot, palette[4]);
-    drawElements(NO_OF_CHESS, fill_chess, palette[2]);
-    drawElements(NO_OF_SOLID, fill_solid, palette[4]);
-    drawElements(20, fill_raindrop, palette[2]);
+    drawElements(NO_OF_DOT, fill_dot, getColorBetweenColors(palette[0], palette[5], .7));
+    // drawElements(NO_OF_CHESS, fill_chess, palette[1]);
+    // drawElements(NO_OF_SOLID, fill_solid, palette[0]);
+    // drawElements(20, fill_raindrop, palette[0]);
 
     for (let i = 0; i < NO_OF_CLUSTERS; i++) {
         let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
         let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
         x = x - (x % (SLAB_SIZE * CELL_SIZE));
         y = y - (y % (SLAB_SIZE * CELL_SIZE))
-        let cluster = propagateCluster([x, y], palette[4], palette[2])
+        // let cluster = propagateCluster2([x, y], palette[0], getColorBetweenColors(palette[0], palette[5], .7))
     }
+
+    for (let i = 0; i < NO_OF_CLUSTERS; i++) {
+        let x = Math.random() * (WIDTH - SLAB_SIZE * CELL_SIZE)
+        let y = Math.random() * (HEIGHT - SLAB_SIZE * CELL_SIZE)
+        x = x - (x % (SLAB_SIZE * CELL_SIZE));
+        y = y - (y % (SLAB_SIZE * CELL_SIZE))
+        let cluster = propagateCluster([x, y], palette[0], palette[5])
+    }
+
 
 }
 

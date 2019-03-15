@@ -38,7 +38,7 @@ function LandMass(points) {
     }
     this.points = newLandMass
     this.history.push(newLandMass);
-    if (this.history.length > 10) {
+    if (this.history.length > 1) {
       this.history.splice(0, 1);
     }
 
@@ -47,6 +47,9 @@ function LandMass(points) {
   this.show = function () {
     noFill();
     beginShape();
+    let mainAlpha = random(0,1);
+    stroke('rgba(0,0,0,'+mainAlpha+')')
+    strokeWeight(.3);
     for (var i = 0; i < this.points.length; i++) {
       var pos = this.points[i];
       vertex(pos.x, pos.y);
@@ -55,7 +58,7 @@ function LandMass(points) {
 
     for (var j = 0; j < this.history.length; j++) {
       let currentMass = this.history[j]
-      stroke(200 - (j * 200 / this.history.length));
+      stroke('rgba(0, 0, 0,'+ mainAlpha * i / this.history.length +')');
       beginShape();
       for (var i = 0; i < currentMass.length; i++) {
         var pos = currentMass[i];
