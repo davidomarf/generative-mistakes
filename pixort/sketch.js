@@ -1,4 +1,6 @@
 var img;
+let index = 0;
+let index_max;
 
 function preload() {
   // img = loadImage('ham.jpg');
@@ -8,22 +10,18 @@ function preload() {
 function setup() {
   createCanvas(720, 360);
   pixelDensity(1);
-  noLoop();
+  image(img, 0, 0, img.width, img.height);
+  loadPixels();
+  index_max = pixels.length / 4 / img.width;
 }
 
 function draw() {
-  image(img, 0, 0, img.width, img.height);
-
-  loadPixels();
-
-  let fourWidth = 4 * img.width;
-
-  for (let x = 0; x < img.height; x++) {
-
+  if (index < index_max) {
+    let fourWidth = 4 * img.width;
     let sortedPixels = [];
     colorMode(RGB)
     for (let y = 0; y < fourWidth; y += 4) {
-      let loc = x * fourWidth + y;
+      let loc = index * fourWidth + y;
       let c = color(
         pixels[loc],
         pixels[loc + 1],
@@ -42,7 +40,7 @@ function draw() {
     let i = 0;
 
     for (let sec_y = 0; sec_y < fourWidth; sec_y += 4) {
-      let loc = x * fourWidth + sec_y;
+      let loc = index * fourWidth + sec_y;
       let c = sortedPixels[i]
       let r = red(c);
       let g = green(c);
@@ -57,33 +55,13 @@ function draw() {
     }
 
     updatePixels();
+    
   }
-
-  // sortedPixels = sortedPixels.sort(Comparator)
-  // colorMode(HSB);
-
-  // let i = 0;
-  // for (let x = 0; x < img.height; x++) {
-  //   for (let y = 0; y < fourWidth; y += 4) {
-  //     let loc = x * fourWidth + y;
-  //     let c = sortedPixels[i]
-  //     let r = red(c);
-  //     let g = green(c);
-  //     let b = green(c);
-  //     // console.log(r, g, b)
-  //     pixels[loc] = r;
-  //     pixels[loc + 1] = g;
-  //     pixels[loc + 2] = b;
-  //     pixels[loc + 3] = 255;
-  //     i++;
-  //   }
-  // }
-
-  // updatePixels();
-
+  index++;
 }
 
 function Comparator(a, b) {
+  r = Math.random();
   if (a[0] < b[0]) return -1;
   if (a[0] > b[0]) return 1;
   return 0;
