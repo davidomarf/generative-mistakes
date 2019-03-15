@@ -44,7 +44,7 @@ function draw() {
       let c = sortedPixels[i]
       let r = red(c);
       let g = green(c);
-      let b = green(c);
+      let b = blue(c);
       // console.log(r, g, b)
       pixels[loc] = r;
       pixels[loc + 1] = g;
