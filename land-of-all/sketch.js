@@ -293,9 +293,7 @@ function drawVoxel(voxel, heightFactor) {
   if (heightFactor === undefined) heightFactor = MAXIMUM_HEIGHT;
   beginShape()
   noStroke()
-  let color = "#FFFFFF"
-  if (voxel.z[0] > 300) { color = "#009922" } else { color = "#222299" }
-  fill(color);
+
   let voxel3D = {
     a: transform3DCoordinates(voxel.x, voxel.y, voxel.z[0]),
     b: transform3DCoordinates(voxel.x + CELL_SIZE, voxel.y, voxel.z[1]),
