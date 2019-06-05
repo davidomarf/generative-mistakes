@@ -253,8 +253,9 @@ function getHeightCurve(h, voxel, voxels) {
 
   push()
   noFill()
-  stroke(100);
-  if (h % 50 == 0) { strokeWeight(2); stroke(0) }
+  // fill(25)
+  stroke("rgba(0, 0, 0, .6)");
+  if (h % 50 == 0) { strokeWeight(2); stroke("rgba(0, 0, 0, .8)") }
   beginShape();
   for (let i = 0; i < curvePoints.length; i++) {
     let cp3D = curvePoints[i];
@@ -271,7 +272,7 @@ function getHeightCurve(h, voxel, voxels) {
 function getAreasFromVoxels(voxels) {
   let testHeight = 500;
   let h = testHeight;
-  for (let h = 0; h < MAXIMUM_HEIGHT; h += 10) {
+  for (let h = 0; h < MAXIMUM_HEIGHT; h += 12.5) {
     for (let i = 0; i < voxels.length; i++) {
       for (let j = 0; j < voxels[i].length; j++) {
         let voxel = voxels[i][j];
@@ -279,6 +280,7 @@ function getAreasFromVoxels(voxels) {
         let max = 0;
         let min = 0;
         if (isHeightInVoxel(h, voxel)) {
+          getHeightCurve(h, voxel, voxels);
           getHeightCurve(h, voxel, voxels);
           // i = voxels.length;
           // break;
@@ -291,9 +293,12 @@ function getAreasFromVoxels(voxels) {
 
 function drawVoxel(voxel, heightFactor) {
   if (heightFactor === undefined) heightFactor = MAXIMUM_HEIGHT;
+  push()
   beginShape()
   noStroke()
-
+  colorMode(HSL)
+  // fill(voxel.z[0] * 255 / heightFactor)
+  fill(color(90, 70, voxel.z[0] * 70 / heightFactor ))
   let voxel3D = {
     a: transform3DCoordinates(voxel.x, voxel.y, voxel.z[0]),
     b: transform3DCoordinates(voxel.x + CELL_SIZE, voxel.y, voxel.z[1]),
@@ -305,5 +310,6 @@ function drawVoxel(voxel, heightFactor) {
   vertex(voxel3D.c.x, voxel3D.c.y);
   vertex(voxel3D.d.x, voxel3D.d.y);
   endShape(CLOSE)
+  pop()
 
 }
