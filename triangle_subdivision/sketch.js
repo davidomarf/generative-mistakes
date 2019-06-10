@@ -1,12 +1,12 @@
 let backgroundColor = [360, 0, 90, 1]
 let randomTriangles = true;
-let variance = 10;
+let variance = 9;
 let fixedScale = .5;
-let recursion_depth = 12;
-let alpha = .2;
+let recursion_depth = 16;
+let alpha = 1;
 let border = 0;
-let thickness = .2;
-let stopOdds = 00;
+let thickness = 1;
+let stopOdds = .1;
 
 let w = 1080, h = 1080;
 
@@ -136,7 +136,7 @@ function drawTriangle(triangle, recursion, max_recursion) {
   let v = triangle.vertices
   let mp = triangle.midPoint
   
-  stroke(0, 100, 0, alpha)
+  stroke(rgb(0, 100, 0))
   
   // bezier(v[0].x, v[0].y, mp.x, mp.y, mp.x, mp.y, v[1].x, v[1].y)
   // bezier(v[1].x, v[1].y, mp.x, mp.y, mp.x, mp.y, v[2].x, v[2].y)
