@@ -5,7 +5,7 @@ let fixedScale = .5;
 let recursion_depth = 16;
 let alpha = 1;
 let border = 0;
-let thickness = 1;
+let thickness = .2;
 let stopOdds = .1;
 
 let w = 1080, h = 1080;
