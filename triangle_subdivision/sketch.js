@@ -136,7 +136,7 @@ function drawTriangle(triangle, recursion, max_recursion) {
   let v = triangle.vertices
   let mp = triangle.midPoint
   
-  stroke(rgb(0, 100, 0))
+  stroke(0)
   
   // bezier(v[0].x, v[0].y, mp.x, mp.y, mp.x, mp.y, v[1].x, v[1].y)
   // bezier(v[1].x, v[1].y, mp.x, mp.y, mp.x, mp.y, v[2].x, v[2].y)
