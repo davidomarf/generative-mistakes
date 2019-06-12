@@ -1,13 +1,90 @@
 <!DOCTYPE html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
 <html>
 
 <head>
+    <link href="https://fonts.googleapis.com/css?family=Cutive+Mono&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.sound.min.js"></script>
     <script language="javascript" type="text/javascript" src="./sketch.js" defer></script>
 </head>
+<style>
+    body {
+        background-color: #151515;
+        font-family: 'Cutive Mono', monospace;
 
-<body style="margin: 0;">
+        font-size: 15px;
+        color: white;
+    }
+
+    .wrapper {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 100vh;
+        align-items: center;
+        justify-items: center;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: 300px 300px;
+        grid-template-rows: 1fr 150px 1fr 1fr 1fr;
+        grid-row-gap: 10px;
+        grid-template-areas: "patient-info date""sketch-holder sketch-holder""bpm minute-ventilation""temperature hb-levels""pressure other";
+    }
+
+    .patient-info {
+        grid-area: patient-info;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .date {
+        grid-area: date;
+    }
+
+    .sketch-holder {
+        grid-area: sketch-holder;
+    }
+
+    .bpm {
+        grid-area: bpm;
+    }
+</style>
+
+<body class="wrapper">
+
+    <div class="grid-container">
+        <div class="patient-info">
+            David Omar Flores Chávez
+        </div>
+        <div class="date text-right">
+            <span id="date-value"></span>
+        </div>
+        <div id="sketch-holder" class="sketch-holder"></div>
+        <div class="bpm">
+            Heart rate: <span id="heart-rate-value">60</span> bpm
+        </div>
+        <div class="temperature text-right">
+            Temperature: <span id="temperature-value">98.6</span> °F
+        </div>
+        <div class="pressure">
+            Blood Pressure: <span id="pressure-value">132/88</span> mmHg
+        </div>
+        <div class="hb-levels text-right">
+            Hemoglobin: <span id="hemoglobin-value">14.1</span> g/dl
+        </div>
+        <div class="minute-ventilation">
+            Minute ventilation: <span id="minute-ventilation-value"> 6.14 </span> L/min
+        </div>
+        <div class="other">
+
+        </div>
+    </div>
+
 </body>
 
-</html> 
+</html>
