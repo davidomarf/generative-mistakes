@@ -1,9 +1,14 @@
 module.exports = {
-  name: 'London Night and Day',
-  shortName: '',
-  description: 'A bold, minimal theme for Gatsby, focused on clean typography & beautiful imagery',
-  url: 'https://www.jooplaan.com', // Domain of your site without prefix!
-  prefix: '/',
-  author: 'jooplaan',
-  twitter: ''
-}
+  name: "Generative Mistakes",
+  shortName: "Generative Mistakes",
+  description:
+    "A collection of experiments in generative artwork and procedural generation",
+  url: "https://generativemistakes.art", // Domain of your site without prefix!
+  prefix: "/",
+  author: {
+    name: "David Omar Flores Chávez",
+    instagram: "https://www.instagram.com/davidomarf/",
+    twitter: "https://twitter.com/davidomarf",
+    url: "https://davidomar.com"
+  }
+};

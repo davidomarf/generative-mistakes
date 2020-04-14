@@ -1,30 +1,32 @@
-const urljoin = require("url-join")
-const siteConfig = require("./siteConfig")
+const urljoin = require("url-join");
+const siteConfig = require("./siteConfig");
 
 module.exports = {
   siteMetadata: {
     title: siteConfig.name,
-    author: siteConfig.author,
+    author: siteConfig.author.name,
     description: siteConfig.description,
     siteUrl: urljoin(siteConfig.url, siteConfig.prefix),
     social: {
-      twitter: siteConfig.twitter,
-    },
+      twitter: siteConfig.author.twitter,
+      instagram: siteConfig.author.instagram,
+      url: siteConfig.author.url
+    }
   },
   plugins: [
     {
       resolve: `gatsby-source-filesystem`,
       options: {
         path: `${__dirname}/content/blog`,
-        name: `blog`,
-      },
+        name: `blog`
+      }
     },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
         path: `${__dirname}/content/assets`,
-        name: `assets`,
-      },
+        name: `assets`
+      }
     },
     {
       resolve: `gatsby-transformer-remark`,
@@ -36,21 +38,21 @@ module.exports = {
               maxWidth: 1360,
               withWebp: true,
               showCaptions: true,
-              quality: 75,
-              wrapperStyle: `margin: 7vw 0;`,
-            },
+              quality: 100,
+              wrapperStyle: `margin: 7vw 0;`
+            }
           },
           {
             resolve: `gatsby-remark-responsive-iframe`,
             options: {
-              wrapperStyle: `margin-bottom: 1.0725rem`,
-            },
+              wrapperStyle: `margin-bottom: 1.0725rem`
+            }
           },
           `gatsby-remark-prismjs`,
           `gatsby-remark-copy-linked-files`,
-          `gatsby-remark-smartypants`,
-        ],
-      },
+          `gatsby-remark-smartypants`
+        ]
+      }
     },
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
@@ -61,9 +63,9 @@ module.exports = {
           require("postcss-easy-import")(),
           require("postcss-custom-properties")({ preserve: false }),
           require("postcss-color-function")(),
-          require("autoprefixer")({ browserlist: ["last 2 versions"] }),
-        ],
-      },
+          require("autoprefixer")({ browserlist: ["last 2 versions"] })
+        ]
+      }
     },
     {
       resolve: `gatsby-plugin-purgecss`,
@@ -72,15 +74,15 @@ module.exports = {
         develop: true, // Enable while using `gatsby develop`
         // tailwind: true, // Enable tailwindcss support
         // whitelist: ['whitelist'], // Don't remove this selector
-        ignore: ['/ignored.css', 'prismjs/', '/prism.css', 'docsearch.js/'], // Ignore files/folders
-        purgeOnly : ['components/', '/main.css', 'bootstrap/'], // Purge only these files/folders
-      },
+        ignore: ["/ignored.css", "prismjs/", "/prism.css", "docsearch.js/"], // Ignore files/folders
+        purgeOnly: ["components/", "/main.css", "bootstrap/"] // Purge only these files/folders
+      }
     },
     {
       resolve: `gatsby-plugin-google-analytics`,
       options: {
-        trackingId: ``,
-      },
+        trackingId: ``
+      }
     },
     `gatsby-plugin-feed`,
     {
@@ -92,12 +94,12 @@ module.exports = {
         background_color: `#ffffff`,
         theme_color: `#663399`,
         display: `minimal-ui`,
-        icon: `content/assets/gatsby-icon.png`,
-      },
+        icon: `content/assets/favicon.png`
+      }
     },
     // `gatsby-plugin-netlify`,
     `gatsby-plugin-offline`,
     `gatsby-plugin-react-helmet`,
-    'gatsby-plugin-sass',
-  ],
-}
+    "gatsby-plugin-sass"
+  ]
+};
