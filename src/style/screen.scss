@@ -7,6 +7,7 @@ production stylesheet in assets/built/screen.scss using gulp dev
 
 /* Lib - Local component imports
 /* ---------------------------------------------------------- */
+@import "fonts.scss";
 @import "vars.scss";
 @import "components/global.scss";
 @import "components/ghost.scss";
@@ -447,7 +448,7 @@ body {
   bottom: 0;
   left: 0;
   color: $color-body-font;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.7);
   opacity: 1;
   transition: opacity 0.5s cubic-bezier(0.33, 0, 0.2, 1);
 }
@@ -584,6 +585,7 @@ body {
   margin: 0 0 3vw;
   color: $color-body-font;
   text-align: center;
+  font-size: 5.7rem;
   @include light-mode {
     color: $color-body-font-light;
   }
