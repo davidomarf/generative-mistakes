@@ -51,6 +51,14 @@ const Layout = props => {
                 Personal Blog
               </a>
               <a
+                href="https://play.generativemistakes.art"
+                title="Blog"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Sandbox
+              </a>
+              <a
                 href="https://twitter.com/davidomarf"
                 title="Twitter"
                 target="_blank"
