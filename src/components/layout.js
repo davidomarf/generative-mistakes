@@ -43,7 +43,15 @@ const Layout = props => {
           <div className="site-head-right">
             <div className="social-links">
               <a
-                href="https://twitter.com"
+                href="https://davidomar.com"
+                title="Blog"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Personal Blog
+              </a>
+              <a
+                href="https://twitter.com/davidomarf"
                 title="Twitter"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -51,7 +59,7 @@ const Layout = props => {
                 Twitter
               </a>
               <a
-                href="https://github.com/jooplaan/gatsby-london-night-and-day"
+                href="https://github.com/davidomarf/generative-mistakes"
                 title="GitHub"
                 target="_blank"
                 rel="noopener noreferrer"

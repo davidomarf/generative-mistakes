@@ -8,7 +8,7 @@ description:
   loser?
 ---
 
-[Try the live version](https://davidomarf.github.io/gen.algorithms/domino-dancing/)
+[Try the live version](https://play.generativemistakes.art/domino-dancing/)
 
 ## In a nutshell
 
@@ -97,8 +97,8 @@ colors.
 ---
 
 This project is open source. If you want to experiment with it, you can
-[get the code](https://github.com/davidomarf/gen.algorithms/blob/master/domino-dancing/sketch.js).
+[get the code](https://github.com/davidomarf/generative-mistakes/tree/master/sketches/domino-dancing).
 
 To generate different works with the same configuration of the final result, but
 with different noise seeds,
-[try the live version](https://davidomarf.github.io/gen.algorithms/domino-dancing/)
+[try the live version](https://play.generativemistakes.art/domino-dancing/)

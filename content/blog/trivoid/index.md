@@ -6,8 +6,6 @@ tags: [noise-field, color]
 description: fuck yu socka
 ---
 
-[Try the live version](https://davidomarf.github.io/gen.algorithms/trivoid/)
-
 ## In a nutshell
 
 1. Generate a heightmap using noise functions with values between 0 and 1.
@@ -107,8 +105,4 @@ Click on any image to open it in another tab at full resolution.
 ![Trivoid 1780271](./trivoid-1780271.png)
 
 This project is open source. If you want to experiment with it, you can
-[get the code](https://github.com/davidomarf/gen.algorithms/blob/master/trivoid/sketch.js).
-
-To generate different works with the same configuration of the final result, but
-with different noise seeds,
-[try the live version](https://davidomarf.github.io/gen.algorithms/trivoid/)
+[get the code](https://github.com/davidomarf/generative-mistakes/blob/master/sketches/trivoid/sketch.js).
