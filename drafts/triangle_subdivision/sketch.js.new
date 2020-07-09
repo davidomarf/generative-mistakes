@@ -1,0 +1,22 @@
+function setup(){
+    canvas = createCanvas(500, 500);
+    background(200);
+    maxRecursion = createSlider(0, 20, 14);
+    minRecursion = createSlider(0, 20, 0);
+    line1 = createCheckbox('1st Line', true);
+    line2 = createCheckbox('2nd Line', false);
+    line3 = createCheckbox('3rd Line', false);
+    randomTriangles = createCheckbox("Random triangles", false);
+    button = createButton('Generate');
+    button.mousePressed(pressedhaha);
+}
+
+function pressedhaha(){
+    let a = maxRecursion.value()
+    ellipse(a, a, a, a);
+    console.log("jaja con " + a)
+}
+
+function draw(){
+}
+

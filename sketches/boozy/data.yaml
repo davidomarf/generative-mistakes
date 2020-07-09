@@ -1,0 +1,47 @@
+---
+date: 2019-11-03
+global_seed: True
+params:   
+  - DIMENSIONS:
+      attrs:
+        type: dimensions
+        value: 
+          - 2200
+          - 2800
+  - GRID_COLS:
+      name: Number of columns
+      attrs:
+        type: number
+        value: 22
+        min: 1
+  - GRID_ROWS:
+      name: Number of rows
+      attrs:
+        type: number
+        value: 28
+        min: 1
+  - STROKE_WEIGHT:
+      attrs:
+        type: number
+        value: 32
+        min: 0
+  - PROBABILITY_ACCENT:
+      name: Probability of accent
+      attrs:
+        type: number
+        value: .1
+        min: 0
+        max: 1
+        step: 0.05
+  - NUMBER_WALKERS:
+      name: Number of walkers
+      attrs:
+        type: number
+        value: 50
+        step: 10
+        min: 0
+  - MARGIN:
+      attrs:
+        type: number
+        value: 5
+        min: 1

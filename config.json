@@ -1,0 +1,17 @@
+{
+    "author": "David Omar",
+    "sitename": "Interactive Generative Mistakes",
+    "description": "Interactive generative artwork",
+    "theme": "gart",
+    "content_path": "sketches",
+    "build_path": "public",
+    "scripts": [{
+            "tag": "p5",
+            "url": "https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"
+        },
+        {
+            "tag": "delaunay",
+            "url": "https://cdn.jsdelivr.net/npm/delaunator@4.0.1/delaunator.min.js"
+        }
+    ]
+}

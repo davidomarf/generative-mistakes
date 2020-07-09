@@ -1,0 +1,289 @@
+class Station {
+  constructor(id, name, coordinates, previous = {}, next = {}) {
+    this.id = id;
+    this.name = name;
+    this.coordinates = coordinates;
+
+    this.lines = [];
+    this.previous = previous;
+    this.next = next;
+  }
+}
+
+class SubwayLine {
+  constructor(id, start, end, stations) {
+    this.id = id;
+    this.start = start;
+    this.end = end;
+
+    this.stations = [start];
+    if (stations !== null) this.stations.concat(stations);
+    this.stations.push(end);
+
+    this.size = this.stations.length;
+    this.intersections = {};
+
+    start.lines.push(this);
+    end.lines.push(this);
+  }
+}
+
+class Network {
+  constructor(lines, stations) {
+    this.lines = lines;
+    this.stations = stations;
+    this.totalStations = this.stations.length;
+  }
+}
+
+let subwayNetwork = new Network([], []);
+
+function setup() {
+  createCanvas(1000, 1000);
+  noLoop();
+}
+
+function isCloseEnough(a, b, d) {
+  return dist(a.x, a.y, b.x, b.y) < d;
+}
+
+function insertStation(line, stationA, stationB, station) {
+  // Push a new element of the id of the station inside the line
+  // structure
+  line.stations.push(station.id);
+
+  // Assuming stations is global (or was sent as parameter)
+  // Update the next and previous fields for A and B
+  stations[stationA.id].next[line.id] = station.id;
+  stations[stationB.id].previous[line.id] = station.id;
+
+  // Add the line information to the station
+  station.line.push(line.id);
+
+  // Specify the previous and next values for the new station
+  // for the corresponding line
+  station.previous[line.id] = stationA.id;
+  station.next[line.id] = stationB.id;
+}
+
+function getNearestStation(line, coordinates) {
+  let lines = subwayNetwork.lines;
+  let closestStation = {
+    station: lines[0].stations[0],
+    distance: dist(
+      lines[0].stations[0].coordinates.x,
+      lines[0].stations[0].coordinates.y,
+      coordinates.x,
+      coordinates.y
+    )
+  };
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].id === line.id) continue;
+    let stations = lines[i].stations;
+    for (let j = 0; j < stations.length; j++) {
+      let station = stations[j];
+      let distBetweenStations = dist(
+        station.coordinates.x,
+        station.coordinates.y,
+        coordinates.x,
+        coordinates.y
+      );
+
+      if (distBetweenStations < closestStation.distance) {
+        closestStation = {
+          station: station,
+          distance: distBetweenStations
+        };
+      }
+    }
+  }
+  return closestStation;
+}
+
+function createStationWithCoordinates(line, coordinates) {
+  if (subwayNetwork.lines.length === 0) {
+    return new Station("st-" + floor(random(1000)), "test", coordinates);
+  }
+
+  let distance = 150;
+  let nearestStation = getNearestStation(line, coordinates);
+  let newStation = null;
+  if (
+    nearestStation.distance < distance &&
+    !line.intersections[nearestStation.station.lines[0]]
+  ) {
+    line.intersections[nearestStation.station.lines[0]] =
+      nearestStation.station.id;
+    console.log(line);
+    newStation = nearestStation.station;
+  } else {
+    newStation = new Station("st-" + floor(random(1000)), "test", coordinates);
+  }
+
+  return newStation;
+}
+
+/**
+ * Recursive function to create intermediate stations between two stations
+ * @param {Vector[]}  line        Array of the stations in the line
+ * @param {Vector}    a           Start of the section
+ * @param {Vector}    b           End of the section
+ * @param {number}    distance    The threshold to decide whether to create one more station or not
+ * @param {number}    iteration   The current iteration of the function
+ *
+ * @return {Vector}   Indicates the coordinates of the new station
+ */
+function createIntermediateStations(
+  line,
+  stationA,
+  stationB,
+  distance,
+  iteration
+) {
+  let a = stationA.coordinates;
+  let b = stationB.coordinates;
+  if (isCloseEnough(a, b, distance)) {
+    return;
+  }
+
+  let stationDistance = dist(a.x, a.y, b.x, b.y);
+  let angle = angleBetweenPoints(a, b);
+
+  let ratio = randomGaussian(0.5, 0.05);
+
+  let newStationCoordinates = {
+    x: a.x + cos(angle) * stationDistance * ratio,
+    y: a.y + sin(angle) * stationDistance * ratio
+  };
+
+  let newStation = createStationWithCoordinates(line, newStationCoordinates);
+
+  stationA.next[line.id] = newStation;
+  stationB.previous[line.id] = newStation;
+
+  newStation.next[line.id] = stationB;
+  newStation.previous[line.id] = stationA;
+
+  newStation.lines.push(line);
+
+  line.stations.push(newStation);
+  line.size++;
+
+  if (newStation.lines.length == 1) {
+    newStation.coordinates = warpPoint(
+      newStation.coordinates,
+      angle,
+      100 / (iteration + 1)
+    );
+  }
+  createIntermediateStations(
+    line,
+    stationA,
+    newStation,
+    distance,
+    iteration + 1
+  );
+
+  createIntermediateStations(
+    line,
+    newStation,
+    stationB,
+    distance,
+    iteration + 1
+  );
+}
+
+// returns true iff the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+function intersects(a, b, c, d, p, q, r, s) {
+  var det, gamma, lambda;
+  det = (c - a) * (s - q) - (r - p) * (d - b);
+  if (det === 0) {
+    return false;
+  } else {
+    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+    return 0 < lambda && lambda < 1 && (0 < gamma && gamma < 1);
+  }
+}
+
+function createSubwayLine(start, end) {
+  let newLine = new SubwayLine("ln-" + floor(random(100000)), start, end);
+
+  createIntermediateStations(newLine, newLine.start, newLine.end, 100, 0);
+
+  return newLine;
+}
+
+function draw() {
+  for (let i = 0; i < 15; i++) {
+    let start = new Station("st-0", "start", {
+      x: 100 + random(width - 200),
+      y: 100 + random(height - 200)
+    });
+
+    let end = new Station("st-1", "end", {
+      x: 100 + random(width - 200),
+      y: 100 + random(height - 200)
+    });
+
+    subwayNetwork.stations = subwayNetwork.stations.concat([start, end]);
+
+    let newLine = createSubwayLine(start, end);
+
+    subwayNetwork.lines = subwayNetwork.lines.concat([newLine]);
+    subwayNetwork.totalStations += newLine.size;
+    subwayNetwork.stations = subwayNetwork.stations.concat(newLine.stations);
+    drawSubwayLine(newLine, i);
+  }
+}
+
+function drawSubwayLine(subwayLine, i) {
+  let station = subwayLine.start;
+  colorMode(HSL);
+  let strokeHue = 360 * (i / 15);
+  stroke(strokeHue, 50, 50);
+  strokeWeight(5);
+  while (station !== undefined) {
+    if (station.name !== "start") {
+      let previous = station.previous[subwayLine.id];
+      line(
+        previous.coordinates.x,
+        previous.coordinates.y,
+        station.coordinates.x,
+        station.coordinates.y
+      );
+    }
+    station = station.next[subwayLine.id];
+  }
+
+  station = subwayLine.start;
+  while (station !== undefined) {
+    if (station.lines.length > 1) {
+      push();
+      fill("white");
+      stroke("black");
+      strokeWeight(3.5);
+      circle(station.coordinates.x, station.coordinates.y, 8.5);
+      pop();
+    } else {
+      fill("white");
+      strokeWeight(2.5);
+      circle(station.coordinates.x, station.coordinates.y, 6.5);
+    }
+    station = station.next[subwayLine.id];
+  }
+}
+
+function warpPoint(p, angle, distance) {
+  angle += PI / 2;
+  let warpingDistance = randomGaussian(0, 1) * distance;
+  let newPoint = {
+    x: p.x + cos(angle) * warpingDistance,
+    y: p.y + sin(angle) * warpingDistance
+  };
+  return newPoint;
+}
+
+function angleBetweenPoints(p1, p2) {
+  return atan2(p2.y - p1.y, p2.x - p1.x);
+}

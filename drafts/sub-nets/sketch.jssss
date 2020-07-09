@@ -1,0 +1,224 @@
+function setup() {
+  createCanvas(1000, 1000);
+  noLoop();
+}
+
+class Station {
+  constructor(id, name, coordinates) {
+    this.id = id;
+    this.name = name;
+    this.coordinates = coordinates;
+    this.lines = [];
+    this.previous = {}
+    this.next = {}
+  }
+}
+
+/**
+ * Recursive function to create intermediate stations between two stations
+ * @param {Vector[]}  line        Array of the stations in the line
+ * @param {Vector}    a           Start of the section
+ * @param {Vector}    b           End of the section
+ * @param {number}    distance    The threshold to decide whether to create one more station or not
+ * @param {number}    iteration   The current iteration of the function
+ *
+ * @return {Vector}   Indicates the coordinates of the new station
+ */
+function createIntermediateStations(
+  line,
+  stationA,
+  stationB,
+  distance,
+  iteration
+) {
+  let a = line[stationA].coordinates;
+  let b = line[stationB].coordinates;
+
+  if (isCloseEnough(a, b, distance)) {
+    return;
+  }
+
+  let stationDistance = dist(a.x, a.y, b.x, b.y);
+  let angle = angleBetweenPoints(a, b);
+
+  let ratio = randomGaussian(0.5, 0.05);
+
+  let newStation = new Station(
+    "a",
+    createStringFromNumber(line.size + 1),
+    {
+      x: a.x + cos(angle) * stationDistance * ratio,
+      y: a.y + sin(angle) * stationDistance * ratio
+    },
+    stationA,
+    stationB
+  );
+
+  line[stationA].next = newStation;
+  line[stationB].previous = newStation.name;
+  line[newStation.name] = newStation;
+  line.size++;
+
+  newStation.coordinates = warpPoint(
+    newStation.coordinates,
+    angle,
+    100 / (iteration + 1)
+  );
+
+  createIntermediateStations(
+    line,
+    stationA,
+    newStation.name,
+    distance,
+    iteration + 1
+  );
+  createIntermediateStations(
+    line,
+    newStation.name,
+    stationB,
+    distance,
+    iteration + 1
+  );
+}
+
+function isCloseEnough(a, b, d) {
+  return dist(a.x, a.y, b.x, b.y) < d;
+}
+
+function createStringFromNumber(n) {
+  return String.fromCharCode(65 + n);
+}
+
+// returns true iff the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+function intersects(a, b, c, d, p, q, r, s) {
+  var det, gamma, lambda;
+  det = (c - a) * (s - q) - (r - p) * (d - b);
+  if (det === 0) {
+    return false;
+  } else {
+    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+    return 0 < lambda && lambda < 1 && (0 < gamma && gamma < 1);
+  }
+}
+
+function searchForIntersections(start, end, network){
+  for(let i = 0; ;);
+}
+
+function createSubwayLine(network, start, end) {
+  let subwayLine = {
+    size: 2,
+    start: new Station("a", "start", start, null, "end"),
+    end: new Station("a", "end", end, "start", null)
+  };
+  console.log(network);
+  // if (network.length > 0) {
+  //   let intersections = searchForIntersections(start, end, network);
+  //   intersection.map(
+  //     createIntermediateStations(subwayLine, )
+  //   )
+  //   createIntermediateStations(subwayLine, "start",)
+  // }
+
+  if(network.length === 0){
+    createIntermediateStations(subwayLine, "start", "end", 100, 0);
+  }
+  drawSubwayLine(subwayLine);
+  return subwayLine;
+}
+
+function drawSubwayLine(subwayLine) {
+  let station = subwayLine.start;
+  colorMode(HSL);
+  stroke(random(360), 50, 50);
+  strokeWeight(10);
+  while (station.next !== null) {
+    if (station.name !== "start") {
+      let previous = subwayLine[station.previous];
+      line(
+        previous.coordinates.x,
+        previous.coordinates.y,
+        station.coordinates.x,
+        station.coordinates.y
+      );
+    }
+    station = subwayLine[station.next];
+  }
+
+  station = subwayLine.start;
+  while (station.next !== null) {
+    fill("white");
+    strokeWeight(2.5);
+    circle(station.coordinates.x, station.coordinates.y, 6.5);
+    station = subwayLine[station.next];
+  }
+}
+
+function draw() {
+  let subwayNetwork = [];
+
+  let start = {
+    x: random(width / 3),
+    y: random(height / 3)
+  };
+
+  let end = {
+    x: (2 * width) / 3 + random(width / 3),
+    y: (2 * height) / 3 + random(height / 3)
+  };
+
+  subwayNetwork.push(createSubwayLine(subwayNetwork, start, end));
+  console.log(subwayNetwork);
+  start = {
+    x: (2 * width) / 3 + random(width / 3),
+    y: random(height / 3)
+  };
+
+  end = {
+    x: random(width / 3),
+    y: (2 * height) / 3 + random(height / 3)
+  };
+
+  subwayNetwork.push(createSubwayLine(subwayNetwork, start, end));
+
+  createIntersections(subwayNetwork);
+}
+
+function createIntersections(net) {
+  net.map(e => {});
+}
+
+function drawWarpedMidPoints(start, end) {
+  midpoints.push();
+
+  midpoints = midpoints.map(e => warpPoint(e, angle, 100));
+  midpoints.map((e, i) => {
+    fill(255 - i * 150);
+    circle(e.x, e.y, 7);
+  });
+  midpoints.push(end);
+  midpoints = [start].concat(midpoints);
+  console.log(midpoints);
+  midpoints.map((e, i) =>
+    i + 1 < midpoints.length
+      ? line(e.x, e.y, midpoints[i + 1].x, midpoints[i + 1].y)
+      : 0
+  );
+}
+
+function addMidPoints(points, distance) {}
+
+function warpPoint(p, angle, distance) {
+  angle += PI / 2;
+  let warpingDistance = randomGaussian(0, 1) * distance;
+  let newPoint = {
+    x: p.x + cos(angle) * warpingDistance,
+    y: p.y + sin(angle) * warpingDistance
+  };
+  return newPoint;
+}
+
+function angleBetweenPoints(p1, p2) {
+  return atan2(p2.y - p1.y, p2.x - p1.x);
+}

@@ -1,0 +1,85 @@
+---
+date: 2019-08-21
+global_seed: True
+params:
+  - DIMENSIONS:
+      attrs:
+        type: dimensions
+        value:
+        - 2048
+        - 2560
+  - NUMBER_OF_COLUMNS:
+      attrs:
+        type: number
+        value: 30
+        step: 1
+  - COLUMN_BORDER:
+      attrs:
+        type: number
+        value: 4
+        step: 1
+        min: 0
+  - COLUMN_Y_SD:
+      name: Columns offset sd
+      attrs:
+        type: number
+        value: 300
+        step: 1
+  - COLUMN_HF_MIN:
+      name: Minimum column height factor
+      attrs:
+        type: range
+        value: 0.1
+        step: 0.01
+        min: 0
+        max: 1
+  - COLUMN_HF_MAX:
+      name: Maximum column height factor
+      attrs:
+        type: range
+        value: 0.6
+        step: 0.01
+        min: 0
+        max: 1
+  - SKETCHINESS:
+      attrs:
+        type: number
+        value: 3
+        step: 0.1
+        min: 0
+  - OUT_DENSITY:
+      name: Outter density
+      attrs:
+        type: number
+        value: 0.9
+        step: 0.05
+        min: 0
+  - IN_DENSITY:
+      name: Inner density
+      attrs:
+        type: number
+        value: 0.7
+        step: 0.05
+        min: 0
+        max: 1
+  - COLOR_PROBABILITY:
+      attrs:
+        type: number
+        value: 0.1
+        step: 0.05
+        min: 0
+        max: 1
+  - SQUARE_POS_SD:
+      name: Square alignment offset sd
+      attrs:
+        type: number
+        value: 2
+        step: 0.5
+        min: 0
+        max: 100
+  - SQUARE_HEIGHT_SD:
+      attrs:
+        type: number
+        value: 6
+        step: 0.5
+        min: 0

@@ -1,6 +1,3 @@
 [build]
-  command = "gatsby build"
+  command = "ginpar build"
   publish = "public"
-
-[build.environment]
-  NODE_VERSION = "12.14.1"
