@@ -1,0 +1,24 @@
+date: 2021-10-16
+global_seed: True
+params:
+  - DIMENSIONS:
+      attrs:
+        type: dimensions
+        value:
+          - 2560
+          - 2048
+  - NUMBER_OF_DAYS:
+      attrs:
+        type: number
+        value: 5
+        step: 1
+  - MEETINGS_PER_DAY:
+      attrs:
+        type: number
+        value: 80
+        step: 1
+  - AVERAGE_MEETING_LENGTH:
+      attrs:
+        type: number
+        value: 8
+        step: 1
