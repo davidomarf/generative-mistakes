@@ -18,7 +18,7 @@ function setup() {
  */
 function draw() {
   // Set a background color
-  background(20);
+  background(15);
 
   for (let i = 0; i < NUMBER_OF_DAYS; i++) {
     drawDay((DIMENSIONS[0] / NUMBER_OF_DAYS) * i, width / NUMBER_OF_DAYS);
@@ -26,69 +26,105 @@ function draw() {
 }
 
 function drawDay(x, dayWidth) {
-  const dayMargin = 100;
-  fill(10);
-  rect(
-    x + dayMargin / 2,
-    dayMargin / 2,
-    dayWidth - dayMargin / 2,
-    height - dayMargin
-  );
+  const dayMargin = 20;
 
-  const meetings = []
+  let meetings = []
     .constructor(MEETINGS_PER_DAY)
     .fill(null)
-    .map(() => ({
-      hour: Math.ceil(random() * 20),
+    .map((_, i) => ({
+      startTime: Math.ceil(random() * 40),
       length: Math.ceil(random() * AVERAGE_MEETING_LENGTH),
+    }))
+    .map((meeting) => ({
+      ...meeting,
+      endTime: meeting.startTime + meeting.length,
     }));
 
-  meetings.sort((a, b) => a.hour - b.hour || a.length - b.length);
+  meetings = meetings.filter(
+    ({ startTime, length }) => startTime + length < 40
+  );
+
+  meetings.sort((a, b) => a.startTime - b.startTime || b.length - a.length);
+
+  meetings.forEach((meeting, i, arr) => {
+    meeting.level = 1;
+
+    const collisionMeetings = arr.filter((prevMeeting, m_i) => {
+      if (m_i >= i) {
+        return false;
+      }
+
+      return prevMeeting.endTime > meeting.startTime;
+    });
+
+    if (collisionMeetings && collisionMeetings.length) {
+      const maxLevel = collisionMeetings.sort((a, b) => a.level - b.level)[
+        collisionMeetings.length - 1
+      ].level;
+
+      let customLevel = false;
+      for (let i = 1; i <= maxLevel; i++) {
+        if (!collisionMeetings.some((mm) => mm.level === i)) {
+          meeting.level = i;
+          customLevel = true;
+          break;
+        }
+      }
+
+      const levelComplement = Math.ceil(randomGaussian(10, 5));
+      meeting.level =
+        Math.random() >= 0.5
+          ? 10 - levelComplement / 2
+          : 10 + levelComplement / 2;
+    }
+  });
+  meetings.sort((a, b) => a.level - b.level || a.startTime - b.startTime);
+
   meetings.forEach((meeting, i) =>
     drawMeeting(meeting, x + dayMargin, meetings, i)
   );
 }
 
-function drawMeeting({ hour, length }, x, meetings, i) {
-  const collisions = meetings.filter((meeting, m_i) => {
-    if (m_i >= i) {
-      return false;
-    }
-    const [aStart, aEnd] = [hour, hour + length];
-    const [bStart, bEnd] = [meeting.hour, meeting.hour + meeting.length];
+function drawMeeting({ startTime, endTime, level, length }, x, meetings, i) {
+  let hue;
+  if (RANDOM_HUE) {
+    hue = Math.floor(random() * 360);
+  } else {
+    hue = BASE_HUE - HUE_RANGE / 2 + Math.floor(random() * HUE_RANGE);
+  }
 
-    return (
-      (bStart >= aStart && bStart < aEnd) || (aEnd > bStart && aEnd <= bEnd)
-    );
-  });
-
-  // const hue = 180 + Math.floor(random() * 60);
-  const hue = Math.floor(random() * 360);
-
-  const meetingColor = color(hue, 70, 40, 0.9);
+  const meetingColor = color(hue, 40, 30, 0.9);
 
   fill(meetingColor);
 
   const meetingMargin = 4;
 
-  const collisionMargin = 20 * collisions.length;
+  const collisionMargin = CONFLICT_MARGIN * level;
 
-  rect(
-    x + meetingMargin + collisionMargin,
-    (height * hour) / 20 + collisions.length * 5,
-    100 + Math.floor(random() * 10) * 25 - collisionMargin,
-    length * 40 - collisions.length * 10
-  );
+  const adjustToHeight = (amount) => (height * amount) / 40;
+
+  const collisionedMeetingsMargin = 8;
+  const fillRandom = random();
+
+  if (DRAW_MEETING_FILL)
+    rect(
+      x + meetingMargin + collisionMargin,
+      adjustToHeight(startTime) + (level * collisionedMeetingsMargin) / 2,
+      Math.min(200 + Math.floor(fillRandom * 10) * 20, 400) - collisionMargin,
+      adjustToHeight(length) - level * collisionedMeetingsMargin
+    );
 
   const leadMargin = 0;
 
-  const markerColor = color(hue, 70, 80, 100);
+  const markerColor = color(hue, 40, 80, 100);
   fill(markerColor);
 
   rect(
     x + meetingMargin + collisionMargin + leadMargin,
-    (height * hour) / 20 + leadMargin + collisions.length * 5,
+    adjustToHeight(startTime) +
+      leadMargin +
+      (level * collisionedMeetingsMargin) / 2,
     5,
-    length * 40 - leadMargin * 2 - collisions.length * 10
+    adjustToHeight(length) - leadMargin * 2 - level * collisionedMeetingsMargin
   );
 }

@@ -15,10 +15,46 @@ params:
   - MEETINGS_PER_DAY:
       attrs:
         type: number
-        value: 80
+        value: 100
         step: 1
   - AVERAGE_MEETING_LENGTH:
       attrs:
         type: number
-        value: 8
+        value: 4
         step: 1
+        min: 0
+  - DRAW_MEETING_FILL:
+      attrs:
+        type: number
+        value: 1
+        step: 1
+        min: 0
+        max: 1
+  - RANDOM_HUE:
+      attrs:
+        type: number
+        value: 1
+        step: 1
+        min: 0
+        max: 1
+  - BASE_HUE:
+      attrs:
+        type: number
+        value: 180
+        step: 10
+        min: 0
+        max: 360
+  - HUE_RANGE:
+      attrs:
+        type: number
+        value: 40
+        step: 1
+        min: 0
+        max: 360
+  - CONFLICT_MARGIN:
+      attrs:
+        type: number
+        value: 40
+        step: 1
+        min: 0
+        max: 360
