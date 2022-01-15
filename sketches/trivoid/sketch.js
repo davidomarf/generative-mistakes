@@ -5,10 +5,6 @@ const CELLS_IN_MAP = 200;
 // The big squares that contain each Delaunay triangulation
 const BIG_CELL_SIZE = 400;
 
-// The seed for the noise, so I can keep track of nice ones.
-// Known seeds to produce nice outputs: 9423, 4450, 1780271
-const NOISE_SEED = Math.random() * 2000000;
-
 /**
  * Standard function of p5js
  */
@@ -31,7 +27,7 @@ function draw() {
   // Create the heightmap
   let heights = generateHeightMap();
   // createSpacesBetweenCells(heights, 40);
- 
+
   background(color(`hsl(${COLOR_HUE}, 10%, 5%)`));
 
   // Create the filling instructions for each section
@@ -39,28 +35,28 @@ function draw() {
     {
       heights: heights,
       pointAttempts: POINT_SATURATION,
-      rangeLambda: e => e < 0.5 && e > 0.35,
-      thresholdLambda: e => e * B_TRIANGLE_THRESHOLD,
-      colorLambda: e => [COLOR_HUE, 50, 45]
+      rangeLambda: (e) => e < 0.5 && e > 0.35,
+      thresholdLambda: (e) => e * B_TRIANGLE_THRESHOLD,
+      colorLambda: (e) => [COLOR_HUE, 50, 45],
     },
     {
       heights: heights,
       pointAttempts: POINT_SATURATION,
-      rangeLambda: e => e > 0.6 && e < 0.75,
-      thresholdLambda: e => e * A_TRIANGLE_THRESHOLD,
-      colorLambda: e => [COLOR_HUE, 50, 70]
+      rangeLambda: (e) => e > 0.6 && e < 0.75,
+      thresholdLambda: (e) => e * A_TRIANGLE_THRESHOLD,
+      colorLambda: (e) => [COLOR_HUE, 50, 70],
     },
     {
       heights: heights,
       pointAttempts: POINT_SATURATION,
-      rangeLambda: e => e < 0.25,
-      thresholdLambda: e => C_TRIANGLE_THRESHOLD,
-      colorLambda: e => [COLOR_HUE, 90, 95]
-    }
+      rangeLambda: (e) => e < 0.25,
+      thresholdLambda: (e) => C_TRIANGLE_THRESHOLD,
+      colorLambda: (e) => [COLOR_HUE, 90, 95],
+    },
   ];
 
   // Fill each section
-  sections.map(e => fillWithTriangles(e));
+  sections.map((e) => fillWithTriangles(e));
 }
 
 /**
@@ -109,13 +105,8 @@ function isTriangleTooBig(a, b, c, threshold) {
 
 function fillWithTriangles(instructions) {
   // Parse the filling instrunctions
-  let {
-    heights,
-    pointAttempts,
-    rangeLambda,
-    thresholdLambda,
-    colorLambda
-  } = instructions;
+  let { heights, pointAttempts, rangeLambda, thresholdLambda, colorLambda } =
+    instructions;
 
   // Initialize the set of points that will produce the Delaunay triangulation
   let points = [];
@@ -126,7 +117,7 @@ function fillWithTriangles(instructions) {
         // Get a random point inside the current square
         let point = {
           x: random(c_i * BIG_CELL_SIZE, (c_i + 1) * BIG_CELL_SIZE),
-          y: random(c_j * BIG_CELL_SIZE, (c_j + 1) * BIG_CELL_SIZE)
+          y: random(c_j * BIG_CELL_SIZE, (c_j + 1) * BIG_CELL_SIZE),
         };
 
         // Check if the height for the point is within range
@@ -137,7 +128,7 @@ function fillWithTriangles(instructions) {
       }
 
       // Transform a {x, y} array into a [x, y] array
-      let arr = points.map(e => [e.x, e.y]);
+      let arr = points.map((e) => [e.x, e.y]);
 
       // Get the Delaunay Triangulation for the current Cell
       let delaunay = Delaunator.from(arr);
